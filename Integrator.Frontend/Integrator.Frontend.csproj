@@ -293,6 +293,8 @@
       <_ContentIncludedByDefault Remove="wwwroot\img\photos\unsplash-1.jpg" />
       <_ContentIncludedByDefault Remove="wwwroot\img\photos\unsplash-2.jpg" />
       <_ContentIncludedByDefault Remove="wwwroot\img\photos\unsplash-3.jpg" />
+      <_ContentIncludedByDefault Remove="wwwroot\bootstrap\bootstrap.min.css" />
+      <_ContentIncludedByDefault Remove="wwwroot\bootstrap\bootstrap.min.css.map" />
     </ItemGroup>
 
 </Project>
