@@ -1,12 +1,26 @@
 ﻿using Serilog;
+using Serilog.Extensions.Hosting;
 
-namespace Integrator.Core.HostingExtensions;
+namespace Integrator.Frontend.HostingExtensions;
 
 internal static class LoggingExtension
 {
-    internal static void ConfigureSerilog(this WebApplicationBuilder builder)
+    internal static void ConfigureSerilogLogger(this WebApplicationBuilder builder)
     {
         builder.Host.UseSerilog((ctx, lc) => lc
+            .GetBaseLoggerConfiguration()
+            .ReadFrom.Configuration(ctx.Configuration)
+        );
+    }
+    
+    internal static ReloadableLogger GetSerilogBootstrapLogger()
+    {
+        return new LoggerConfiguration().GetBaseLoggerConfiguration().CreateBootstrapLogger();
+    }
+
+    private static LoggerConfiguration GetBaseLoggerConfiguration(this LoggerConfiguration loggerConfiguration)
+    {
+        return loggerConfiguration
             .WriteTo.Logger(x => x
                 .WriteTo.File(
                     "Logs/Core/CR.log",
@@ -27,8 +41,6 @@ internal static class LoggingExtension
                 )
             )
             .Enrich.FromLogContext()
-            .Enrich.WithCorrelationIdHeader()
-            .ReadFrom.Configuration(ctx.Configuration)
-        );
+            .Enrich.WithCorrelationIdHeader();
     }
 }

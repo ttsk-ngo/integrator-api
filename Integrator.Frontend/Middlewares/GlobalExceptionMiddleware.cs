@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using Serilog;
 
-namespace Integrator.Core.Essentials;
+namespace Integrator.Frontend.Middlewares;
 
 internal class GlobalExceptionMiddleware : IMiddleware
 {

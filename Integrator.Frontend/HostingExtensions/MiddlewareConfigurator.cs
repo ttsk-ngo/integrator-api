@@ -1,8 +1,8 @@
-﻿using Integrator.Core.Essentials;
+﻿using Integrator.Frontend.Middlewares;
 
-namespace Integrator.Core.HostingExtensions;
+namespace Integrator.Frontend.HostingExtensions;
 
-internal static class MiddlewareExtension
+internal static class MiddlewareConfigurator
 {
     internal static void AddScopedMiddlewares(this WebApplicationBuilder builder)
     {
