@@ -1,4 +1,4 @@
-using Integrator.Frontend.HostingExtensions;
+using Integrator.Api.HostingExtensions;
 using Serilog;
 
 try

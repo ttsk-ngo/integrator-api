@@ -1,6 +1,6 @@
-﻿using Integrator.Frontend.Middlewares;
+﻿using Integrator.Api.Middlewares;
 
-namespace Integrator.Frontend.HostingExtensions;
+namespace Integrator.Api.HostingExtensions;
 
 internal static class MiddlewareConfigurator
 {

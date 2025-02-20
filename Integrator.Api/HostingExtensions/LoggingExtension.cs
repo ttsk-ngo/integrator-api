@@ -1,7 +1,7 @@
 ﻿using Serilog;
 using Serilog.Extensions.Hosting;
 
-namespace Integrator.Frontend.HostingExtensions;
+namespace Integrator.Api.HostingExtensions;
 
 internal static class LoggingExtension
 {
