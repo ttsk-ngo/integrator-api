@@ -20,6 +20,8 @@ try
 
     var app = builder.Build();
 
+    app.UseStatusCodePagesWithReExecute("/errors/{0}");
+    
     // Configure the HTTP request pipeline.
     if (!app.Environment.IsDevelopment())
     {

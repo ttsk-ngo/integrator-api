@@ -1,0 +1,56 @@
+﻿@page "/login"
+@using Integrator.Frontend.Components.Layouts.Simple
+@layout SimpleLayout
+
+<div class="text-center mt-4">
+    <h1 class="h2">Welcome back!</h1>
+    <p class="lead">
+        Sign in to your account to continue
+    </p>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="m-sm-3">
+            <div class="d-grid gap-2 mb-3">
+                <a class="btn btn-secondary btn-lg" href="index.html">Sign in with TTSK</a>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <hr>
+                </div>
+                <div class="col-auto text-uppercase d-flex align-items-center">Or</div>
+                <div class="col">
+                    <hr>
+                </div>
+            </div>
+            <form>
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input class="form-control form-control-lg" type="email" name="email" placeholder="Enter your email" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <input class="form-control form-control-lg" type="password" name="password" placeholder="Enter your password" />
+                    <small>
+                        <a href="pages-reset-password.html">Forgot password?</a>
+                    </small>
+                </div>
+                <div>
+                    <div class="form-check align-items-center">
+                        <input id="customControlInline" type="checkbox" class="form-check-input" value="remember-me" name="remember-me"
+                               checked>
+                        <label class="form-check-label text-small" for="customControlInline">Remember me</label>
+                    </div>
+                </div>
+                <div class="d-grid gap-2 mt-3">
+                    <a href="index.html" class="btn btn-lg btn-primary">Sign in</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="text-center mb-3">
+    Don't have an account? <a href="pages-sign-up.html">Sign up</a>
+</div>
