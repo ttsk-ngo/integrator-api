@@ -24,10 +24,10 @@
 
     <ItemGroup>
       <AdditionalFiles Include="Components\App.razor" />
-      <AdditionalFiles Include="Components\Layout\Main\BottomFooter.razor" />
-      <AdditionalFiles Include="Components\Layout\Main\MainLayout.razor" />
-      <AdditionalFiles Include="Components\Layout\Main\SideBar.razor" />
-      <AdditionalFiles Include="Components\Layout\Main\TopNavBar.razor" />
+      <AdditionalFiles Include="Components\Layouts\Main\BottomFooter.razor" />
+      <AdditionalFiles Include="Components\Layouts\Main\MainLayout.razor" />
+      <AdditionalFiles Include="Components\Layouts\Main\SideBar.razor" />
+      <AdditionalFiles Include="Components\Layouts\Main\TopNavBar.razor" />
       <AdditionalFiles Include="Components\Pages\Counter.razor" />
       <AdditionalFiles Include="Components\Pages\Error.razor" />
       <AdditionalFiles Include="Components\Pages\Home.razor" />
@@ -37,7 +37,9 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.13" />
       <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.13" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.2" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
       <PackageReference Include="Serilog" Version="4.2.0" />
       <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />

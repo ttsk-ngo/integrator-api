@@ -1,6 +1,9 @@
-﻿<Router AppAssembly="typeof(Program).Assembly">
+﻿@using Integrator.Frontend.Components.Layouts.Simple
+@using Integrator.Frontend.Components.Layouts.Main
+@using Integrator.Frontend.Components.Pages.Errors
+<Router AppAssembly="typeof(Program).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.Main.MainLayout)"/>
+        <RouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)"/>
         <FocusOnNavigate RouteData="routeData" Selector="h1"/>
     </Found>
 </Router>
