@@ -13,6 +13,8 @@ try
     
     builder.ConfigureSerilogLogger();
     
+    builder.AddIdentity();
+    
     // Add services to the container.
 
     builder.Services.AddControllers();
