@@ -1,4 +1,5 @@
 using Integrator.Api.HostingExtensions;
+using Integrator.DataAccess.Models.Users;
 using Serilog;
 
 try
@@ -8,6 +9,8 @@ try
     Log.Logger = LoggingExtension.GetSerilogBootstrapLogger();
     Log.Information("Starting up");
     Log.Information("Selected environment: {Environment}", builder.Environment.EnvironmentName);
+
+    builder.Services.AddAuthorization();
     
     builder.AddScopedMiddlewares();
     
@@ -18,6 +21,7 @@ try
     // Add services to the container.
 
     builder.Services.AddControllers();
+    
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
@@ -38,6 +42,7 @@ try
     app.UseAuthorization();
 
     app.MapControllers();
+    app.MapGroup("/account").MapIntegratorIdentityApiEndpoints<IntegratorUser>();
 
     app.Run();
 }
