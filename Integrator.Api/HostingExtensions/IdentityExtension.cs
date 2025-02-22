@@ -83,5 +83,19 @@ internal static class IdentityExtension
             var newPrincipal = await signInManager.CreateUserPrincipalAsync(user);
             return TypedResults.SignIn(newPrincipal, authenticationScheme: IdentityConstants.BearerScheme);
         });
+        
+        routeGroup.MapPost("/logout", async ([FromServices] IServiceProvider serviceProvider, [FromBody] object? body) =>
+        {
+            if (body == null)
+            {
+                return TypedResults.BadRequest();
+            }
+            
+            var signInManager = serviceProvider.GetRequiredService<SignInManager<IntegratorUser>>();
+            
+            await signInManager.SignOutAsync();
+            return Results.Ok();
+        })
+        .RequireAuthorization();
     }
 }
