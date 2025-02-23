@@ -13,7 +13,7 @@ try
     builder.Services.AddAuthorization();
     
     builder.AddScopedMiddlewares();
-    
+
     builder.ConfigureSerilogLogger();
     
     builder.AddIdentity();

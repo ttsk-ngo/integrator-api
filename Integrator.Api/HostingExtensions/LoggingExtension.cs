@@ -1,51 +1,55 @@
 ﻿using Serilog;
+using Serilog.Core;
 using Serilog.Extensions.Hosting;
 
-namespace Integrator.Api.HostingExtensions;
-
-internal static class LoggingExtension
+namespace Integrator.Api.HostingExtensions
 {
-    internal static void ConfigureSerilogLogger(this WebApplicationBuilder builder)
+    internal static class LoggingExtension
     {
-        builder.Services.AddHttpContextAccessor();
+        internal static void ConfigureSerilogLogger(this WebApplicationBuilder builder)
+        {
+            builder.Services.AddHttpContextAccessor();
         
-        builder.Host.UseSerilog((ctx, lc) => lc
-            .GetBaseLoggerConfiguration()
-            .ReadFrom.Configuration(ctx.Configuration)
-        );
+            builder.Host.UseSerilog((ctx, lc) => lc
+                .GetBaseLoggerConfiguration()
+                .ReadFrom.Configuration(ctx.Configuration)
+            );
         
-        builder.Logging.AddSerilog();
-    }
+            builder.Logging.AddSerilog();
+        }
     
-    internal static ReloadableLogger GetSerilogBootstrapLogger()
-    {
-        return new LoggerConfiguration().GetBaseLoggerConfiguration().CreateBootstrapLogger();
-    }
+        internal static ReloadableLogger GetSerilogBootstrapLogger()
+        {
+            return new LoggerConfiguration()
+                .GetBaseLoggerConfiguration()
+                .CreateBootstrapLogger();
+        }
 
-    private static LoggerConfiguration GetBaseLoggerConfiguration(this LoggerConfiguration loggerConfiguration)
-    {
-        return loggerConfiguration
-            .WriteTo.Logger(x => x
-                .WriteTo.File(
-                    "Logs/Core/CR.log",
-                    outputTemplate:
-                    "[{Timestamp:HH:mm:ss} {Level:u3} {CorrelationId} {ClientIp}] {SourceContext} {Message:lj}{NewLine}",
-                    rollingInterval: RollingInterval.Day,
-                    retainedFileCountLimit: 14
+        private static LoggerConfiguration GetBaseLoggerConfiguration(this LoggerConfiguration loggerConfiguration)
+        {
+            return loggerConfiguration
+                .WriteTo.Logger(x => x
+                    .WriteTo.File(
+                        "Logs/Core/CR.log",
+                        outputTemplate:
+                        "[{Timestamp:HH:mm:ss} {Level:u3} {CorrelationId} {ClientIp}] {SourceContext} {Message:lj}{NewLine}",
+                        rollingInterval: RollingInterval.Day,
+                        retainedFileCountLimit: 14
+                    )
                 )
-            )
-            .WriteTo.Logger(x => x
-                .MinimumLevel.Error()
-                .WriteTo.File(
-                    "Logs/Exception/EX.log",
-                    outputTemplate:
-                    "[{Timestamp:HH:mm:ss} {Level:u3} {CorrelationId} {ClientIp}] {SourceContext} {Message:lj}{NewLine}{Exception}",
-                    rollingInterval: RollingInterval.Day,
-                    retainedFileCountLimit: 14
+                .WriteTo.Logger(x => x
+                    .MinimumLevel.Error()
+                    .WriteTo.File(
+                        "Logs/Exception/EX.log",
+                        outputTemplate:
+                        "[{Timestamp:HH:mm:ss} {Level:u3} {CorrelationId} {ClientIp}] {SourceContext} {Message:lj}{NewLine}{Exception}",
+                        rollingInterval: RollingInterval.Day,
+                        retainedFileCountLimit: 14
+                    )
                 )
-            )
-            .Enrich.FromLogContext()
-            .Enrich.WithClientIp()
-            .Enrich.WithCorrelationIdHeader();
+                .Enrich.FromLogContext()
+                .Enrich.WithClientIp()
+                .Enrich.WithCorrelationIdHeader();
+        }
     }
 }

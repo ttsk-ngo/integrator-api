@@ -11,7 +11,7 @@ try
     Log.Information("Selected environment: {Environment}", builder.Environment.EnvironmentName);
 
     builder.AddScopedMiddlewares();
-    
+
     builder.ConfigureSerilogLogger();
     
     // Add services to the container.

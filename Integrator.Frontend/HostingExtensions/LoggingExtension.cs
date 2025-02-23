@@ -1,4 +1,5 @@
 ﻿using Serilog;
+using Serilog.Core;
 using Serilog.Extensions.Hosting;
 
 namespace Integrator.Frontend.HostingExtensions;
@@ -7,15 +8,21 @@ internal static class LoggingExtension
 {
     internal static void ConfigureSerilogLogger(this WebApplicationBuilder builder)
     {
+        builder.Services.AddHttpContextAccessor();
+        
         builder.Host.UseSerilog((ctx, lc) => lc
             .GetBaseLoggerConfiguration()
             .ReadFrom.Configuration(ctx.Configuration)
         );
+        
+        builder.Logging.AddSerilog();
     }
     
     internal static ReloadableLogger GetSerilogBootstrapLogger()
     {
-        return new LoggerConfiguration().GetBaseLoggerConfiguration().CreateBootstrapLogger();
+        return new LoggerConfiguration()
+            .GetBaseLoggerConfiguration()
+            .CreateBootstrapLogger();
     }
 
     private static LoggerConfiguration GetBaseLoggerConfiguration(this LoggerConfiguration loggerConfiguration)
@@ -25,7 +32,7 @@ internal static class LoggingExtension
                 .WriteTo.File(
                     "Logs/Core/CR.log",
                     outputTemplate:
-                    "[{Timestamp:HH:mm:ss} {Level:u3} {CorrelationId}] {SourceContext} {Message:lj}{NewLine}",
+                    "[{Timestamp:HH:mm:ss} {Level:u3} {CorrelationId} {ClientIp}] {SourceContext} {Message:lj}{NewLine}",
                     rollingInterval: RollingInterval.Day,
                     retainedFileCountLimit: 14
                 )
@@ -35,12 +42,13 @@ internal static class LoggingExtension
                 .WriteTo.File(
                     "Logs/Exception/EX.log",
                     outputTemplate:
-                    "[{Timestamp:HH:mm:ss} {Level:u3} {CorrelationId}] {SourceContext} {Message:lj}{NewLine}{Exception}",
+                    "[{Timestamp:HH:mm:ss} {Level:u3} {CorrelationId} {ClientIp}] {SourceContext} {Message:lj}{NewLine}{Exception}",
                     rollingInterval: RollingInterval.Day,
                     retainedFileCountLimit: 14
                 )
             )
             .Enrich.FromLogContext()
+            .Enrich.WithClientIp()
             .Enrich.WithCorrelationIdHeader();
     }
 }
