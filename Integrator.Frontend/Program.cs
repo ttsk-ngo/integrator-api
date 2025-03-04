@@ -1,6 +1,12 @@
 using Integrator.Frontend.Components;
 using Integrator.Frontend.HostingExtensions;
+using Integrator.Frontend.Services.Auth;
+using Integrator.Frontend.Services.Login;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Components.Authorization;
+using RestSharp;
 using Serilog;
+using AuthenticationService = Integrator.Frontend.Services.Auth.AuthenticationService;
 
 try
 {
@@ -13,6 +19,15 @@ try
     builder.AddScopedMiddlewares();
 
     builder.ConfigureSerilogLogger();
+    
+    builder.Services.AddLocalAndOidcAuthentication();
+    
+    builder.Services.AddScoped(_ => new RestClient(new HttpClient()));
+
+    builder.Services.AddScoped<ILoginService, LoginService>();
+
+    builder.Services.AddScoped<AuthenticationService>();
+    builder.Services.AddScoped<AuthenticationStateProvider, IntegratorAuthenticationStateProvider>();
     
     // Add services to the container.
     builder.Services.AddRazorComponents()
