@@ -1,14 +1,11 @@
 ﻿@page "/login"
-@using Integrator.Frontend.Components.Layouts.Simple
-@using Integrator.Frontend.Services.Auth
-@using Integrator.Frontend.Services.Login
-@using Microsoft.AspNetCore.Components.Authorization
-@using Serilog
 @layout SimpleLayout
-@rendermode InteractiveServer
-@inject ILoginService LoginService
-@inject AuthenticationStateProvider AuthenticationStateProvider
-@inject NavigationManager Navigation
+@using Integrator.DataAccess.Models.Users
+@using Integrator.Frontend.Components.Layouts.Simple
+@using Microsoft.AspNetCore.Identity
+@using Serilog
+@inject NavigationManager NavigationManager
+@inject SignInManager<IntegratorUser> SignInManager
 
 <div class="text-center mt-4">
     <h1 class="h2">Welcome back!</h1>
@@ -32,26 +29,30 @@
                     <hr>
                 </div>
             </div>
-            <EditForm Model="LoginModel" OnValidSubmit="SignIn" FormName="SignInForm">
-                <DataAnnotationsValidator></DataAnnotationsValidator>
+            <EditForm Model="Input" method="post" OnValidSubmit="SignIn" FormName="login">
+                <DataAnnotationsValidator/>
                 <div class="mb-3">
                     <label class="form-label">Email</label>
-                    <InputText @bind-Value="LoginModel!.Email" class="form-control form-control-lg" type="email" name="email" placeholder="Enter your email"/>
+                    <InputText @bind-Value="Input.Email" class="form-control form-control-lg" autocomplete="username" aria-required="true" placeholder="Enter your email"/>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Password</label>
-                    <InputText @bind-Value="LoginModel!.Password" class="form-control form-control-lg" type="password" name="password" placeholder="Enter your password"/>
+                    <InputText type="password" @bind-Value="Input.Password" class="form-control form-control-lg" autocomplete="current-password" aria-required="true" placeholder="Enter your password"/>
                     <small>
                         <a href="pages-reset-password.html">Forgot password?</a>
                     </small>
                 </div>
                 <div class="mb-3">
                     <div class="form-check align-items-center">
-                        <InputCheckbox @bind-Value="LoginModel!.RememberMe" id="customControlInline" type="checkbox" class="form-check-input" name="remember-me"/>
+                        <InputCheckbox @bind-Value="Input.RememberMe" class="form-check-input" />
                         <label class="form-check-label text-small" for="customControlInline">Remember me</label>
                     </div>
                 </div>
-                <ValidationSummary class="mb-3 text-danger"></ValidationSummary>
+                <ValidationSummary class="mb-3 text-danger"/>
+                @if (!string.IsNullOrEmpty(ErrorMessage))
+                {
+                    <ul class="mb-3 text-danger"><li>@ErrorMessage</li></ul>
+                }
                 <div class="d-grid gap-2 mt-3">
                     <button type="submit" class="btn btn-lg btn-primary">Sign in</button>
                 </div>
@@ -60,26 +61,25 @@
     </div>
 </div>
 
-<div class="text-center mb-3">
-    Don't have an account? <a href="pages-sign-up.html">Sign up</a>
-</div>
-
 @code {
-    [SupplyParameterFromForm] private LoginModel? LoginModel { get; set; } = new() { RememberMe = true };
+    [SupplyParameterFromForm] 
+    private LoginModel Input { get; set; } = new() { RememberMe = true };
     private readonly ILogger _logger = Log.ForContext<Login>();
+    private string ErrorMessage = ""; 
+    
+    [SupplyParameterFromQuery] private string? ReturnUrl { get; set; }
 
     private async Task SignIn()
     {
-        _logger.Information("Initiating SignIn");
-        await LoginService.Login(new LoginRequest()
+        var result = await SignInManager.PasswordSignInAsync("janoxxx", Input.Password, Input.RememberMe, lockoutOnFailure: false);
+        if (result.Succeeded)
         {
-            Email = LoginModel!.Email,
-            Password = LoginModel!.Password,
-            RememberMe = LoginModel!.RememberMe
-        });
-
-        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        
-        Navigation.NavigateTo("/");
+            _logger.Information("Login succeeded for user: {Email}", Input.Email);
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            ErrorMessage = "Invalid credentials";
+        }
     }
 }

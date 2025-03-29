@@ -10,8 +10,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Integrator.Domain", "Integr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Integrator.Frontend", "Integrator.Frontend\Integrator.Frontend.csproj", "{76722052-BA92-499A-A5AD-AB539CF0DD25}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Integrator.Api", "Integrator.Api\Integrator.Api.csproj", "{15E502F6-4FB3-44AA-9546-577241066590}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,9 +36,5 @@ Global
 		{76722052-BA92-499A-A5AD-AB539CF0DD25}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{76722052-BA92-499A-A5AD-AB539CF0DD25}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{76722052-BA92-499A-A5AD-AB539CF0DD25}.Release|Any CPU.Build.0 = Release|Any CPU
-		{15E502F6-4FB3-44AA-9546-577241066590}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{15E502F6-4FB3-44AA-9546-577241066590}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{15E502F6-4FB3-44AA-9546-577241066590}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{15E502F6-4FB3-44AA-9546-577241066590}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
