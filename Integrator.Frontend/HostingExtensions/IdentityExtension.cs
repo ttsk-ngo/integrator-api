@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Integrator.Frontend.HostingExtensions;
 
-public static class IdentityExtension
+internal static class IdentityExtension
 {
     internal static IServiceCollection AddIntegratorIdentity(this IServiceCollection services)
     {
