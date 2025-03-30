@@ -1,5 +1,7 @@
+using Integrator.DataAccess.DbContexts;
 using Integrator.Frontend.Components;
 using Integrator.Frontend.HostingExtensions;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 try
@@ -13,10 +15,14 @@ try
     builder.AddScopedMiddlewares();
 
     builder.ConfigureSerilogLogger();
+
+    // Integrator standard database
+    builder.AddIntegratorDatabase();
     
     // Integrator identity database and setup
     builder.AddIntegratorIdentityDatabase();
     builder.Services.AddIntegratorIdentity();
+    
     // Add services to the container.
     builder.Services.AddRazorComponents()
         .AddInteractiveServerComponents();
