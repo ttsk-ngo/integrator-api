@@ -62,7 +62,7 @@
 
     <ItemGroup>
       <Folder Include="Logs\Core\" />
-      <Folder Include="Services\" />
+      <Folder Include="Logs\Exception\" />
     </ItemGroup>
 
 </Project>
