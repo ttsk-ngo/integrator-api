@@ -1,5 +1,6 @@
 using Integrator.Frontend.Components;
 using Integrator.Frontend.HostingExtensions;
+using MudBlazor.Services;
 using Serilog;
 
 try
@@ -20,6 +21,9 @@ try
     // Add services to the container.
     builder.Services.AddRazorComponents()
         .AddInteractiveServerComponents();
+    
+    // Add mudblazor
+    builder.Services.AddMudServices();
 
     var app = builder.Build();
 
