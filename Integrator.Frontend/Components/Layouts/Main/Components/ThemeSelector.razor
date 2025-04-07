@@ -1,0 +1,22 @@
+﻿@if (IsDarkMode)
+{
+    <MudIconButton Icon="@Icons.Material.Outlined.LightMode" aria-label="light mode" OnClick="ChangeTheme"></MudIconButton>
+}
+else
+{
+    <MudIconButton Icon="@Icons.Material.Outlined.DarkMode" aria-label="dark mode" OnClick="ChangeTheme"></MudIconButton>
+}
+
+@code {
+
+    [Parameter]
+    public bool IsDarkMode { get; set; }
+    
+    [Parameter]
+    public EventCallback OnThemeButtonClick { get; set; }
+
+    protected async Task ChangeTheme()
+    {
+        await OnThemeButtonClick.InvokeAsync();
+    }
+}

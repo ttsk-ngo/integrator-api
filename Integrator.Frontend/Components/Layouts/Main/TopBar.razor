@@ -1,0 +1,39 @@
+﻿@using Integrator.Frontend.Components.Layouts.Main.Components
+<MudAppBar Elevation="0" Color="Color.Transparent">
+    <MudIconButton Icon="@Icons.Material.Outlined.MenuOpen" Color="Color.Inherit" OnClick="DrawerToggle"></MudIconButton>
+    <MudSpacer></MudSpacer>
+    <MudIconButton Icon="@Icons.Material.Outlined.Notifications" aria-label="notifications"></MudIconButton>
+    
+    <ThemeSelector IsDarkMode="IsDarkMode" OnThemeButtonClick="ChangeTheme"></ThemeSelector>
+    
+    <MudMenu Class="ml-2" Dense="true">
+        <ActivatorContent>
+            <MudAvatar Color="Color.Primary">J</MudAvatar>
+        </ActivatorContent>
+        <ChildContent>
+            <MudMenuItem>Profile</MudMenuItem>
+            <MudMenuItem>Logout</MudMenuItem>
+        </ChildContent>
+    </MudMenu>
+</MudAppBar>
+
+@code {
+    [Parameter]
+    public EventCallback DrawerToggleClicked { get; set; }
+    
+    [Parameter]
+    public bool IsDarkMode { get; set; }
+    
+    [Parameter]
+    public EventCallback ChangeThemeClicked { get; set; }
+    
+    protected async Task DrawerToggle()
+    {
+        await DrawerToggleClicked.InvokeAsync();
+    }
+
+    protected async Task ChangeTheme()
+    {
+        await ChangeThemeClicked.InvokeAsync();
+    }
+}
