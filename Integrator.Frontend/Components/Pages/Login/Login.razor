@@ -1,85 +1,111 @@
-﻿@page "/login"
+﻿@page "/auth/login"
 @layout SimpleLayout
 @using Integrator.DataAccess.Models.Users
 @using Integrator.Frontend.Components.Layouts.Simple
+@using Integrator.Frontend.Components.Pages.Login
+@using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
 @using Serilog
 @inject NavigationManager NavigationManager
 @inject SignInManager<IntegratorUser> SignInManager
+@inject UserManager<IntegratorUser> UserManager
 
-<div class="text-center mt-4">
-    <h1 class="h2">Welcome back!</h1>
-    <p class="lead">
-        Sign in to your account to continue
-    </p>
-</div>
-
-<div class="card">
-    <div class="card-body">
-        <div class="m-sm-3">
-            <div class="d-grid gap-2 mb-3">
-                <button class="btn btn-secondary btn-lg" href="index.html">Sign in with TTSK</button>
-            </div>
-            <div class="row">
-                <div class="col">
-                    <hr>
-                </div>
-                <div class="col-auto text-uppercase d-flex align-items-center">Or</div>
-                <div class="col">
-                    <hr>
-                </div>
-            </div>
-            <EditForm Model="Input" method="post" OnValidSubmit="SignIn" FormName="login">
-                <DataAnnotationsValidator/>
-                <div class="mb-3">
-                    <label class="form-label">Email</label>
-                    <InputText @bind-Value="Input.Email" class="form-control form-control-lg" autocomplete="username" aria-required="true" placeholder="Enter your email"/>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Password</label>
-                    <InputText type="password" @bind-Value="Input.Password" class="form-control form-control-lg" autocomplete="current-password" aria-required="true" placeholder="Enter your password"/>
-                    <small>
-                        <a href="pages-reset-password.html">Forgot password?</a>
-                    </small>
-                </div>
-                <div class="mb-3">
-                    <div class="form-check align-items-center">
-                        <InputCheckbox @bind-Value="Input.RememberMe" class="form-check-input" />
-                        <label class="form-check-label text-small" for="customControlInline">Remember me</label>
+<MudContainer Class="d-flex flex-column justify-center" Style="height: 100vh;" MaxWidth="MaxWidth.ExtraSmall">
+    <MudPaper Class="pa-4">
+        <MudText Typo="Typo.h4" Class="mb-4">Sign in</MudText>
+        
+        <EditForm method="post" Model="@ExternalLoginInput" FormName="External">
+            <button class="mud-button-root mud-button mud-button-outlined mud-button-outlined-default 
+            mud-button-outlined-size-medium mud-width-full mud-ripple" type="submit">
+                <span class="mud-button-label">Sign in with TTSK</span>
+            </button>
+        </EditForm>
+        
+        <MudDivider DividerType="DividerType.Middle" Class="my-3"/>
+        
+        <EditForm method="post" Model="@LoginInput" OnValidSubmit="SignIn" FormName="Local">
+            <DataAnnotationsValidator/>
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <MudContainer Class="mt-2 mud-input-helper-text mud-input-error px-0">@ErrorMessage</MudContainer>
+            }
+            <div class="mud-input-control mud-input-outlined-with-label mud-input-input-control">
+                <div class="mud-input-control-input-container">
+                    <div class="mud-input mud-input-outlined mud-input-outlined-with-label mud-shrink mud-typography-subtitle1">
+                        <InputText class="mud-input-slot mud-input-root mud-input-root-outlined" @bind-Value="LoginInput.Email"></InputText>
+                        <div class="mud-input-slot mud-input-root mud-input-root-outlined" style="display:none" tabindex="-1"></div>
+                        <fieldset class="mud-input-outlined-border">
+                            <legend>Email</legend>
+                        </fieldset>
                     </div>
+                    <label class="mud-input-label mud-input-label-animated mud-input-label-outlined mud-input-label-inputcontrol" for="mudinputr8vzhys1">Email</label>
+                    <ValidationMessage class="mt-2 mud-input-helper-text mud-input-error" For="() => LoginInput.Email"></ValidationMessage>
                 </div>
-                <ValidationSummary class="mb-3 text-danger"/>
-                @if (!string.IsNullOrEmpty(ErrorMessage))
-                {
-                    <ul class="mb-3 text-danger"><li>@ErrorMessage</li></ul>
-                }
-                <div class="d-grid gap-2 mt-3">
-                    <button type="submit" class="btn btn-lg btn-primary">Sign in</button>
+            </div>
+            <div class="mud-input-control mud-input-outlined-with-label mud-input-input-control">
+                <div class="mud-input-control-input-container">
+                    <div class="mud-input mud-input-outlined mud-input-outlined-with-label mud-shrink mud-typography-subtitle1">
+                        <InputText type="password" class="mud-input-slot mud-input-root mud-input-root-outlined" @bind-Value="LoginInput.Password"></InputText>
+                        <div class="mud-input-slot mud-input-root mud-input-root-outlined" style="display:none" tabindex="-1"></div>
+                        <fieldset class="mud-input-outlined-border">
+                            <legend>Password</legend>
+                        </fieldset>
+                    </div>
+                    <label class="mud-input-label mud-input-label-animated mud-input-label-outlined mud-input-label-inputcontrol" for="mudinputr8vzhys1">Password</label>
+                    <ValidationMessage class="mt-2 mud-input-helper-text mud-input-error" For="() => LoginInput.Password"></ValidationMessage>
                 </div>
-            </EditForm>
-        </div>
-    </div>
-</div>
+            </div>
+            <div class="mud-input-control mud-input-control-boolean-input mb-2">
+                <div class="mud-input-control-input-container">
+                    <label class="mud-checkbox mud-input-content-placement-end" id="checkbox8ixw6fxk">
+                        <span tabindex="0" class="mud-button-root mud-icon-button mud-default-text hover:mud-default-hover mud-ripple mud-ripple-checkbox mud-checkbox-true">
+                            <InputCheckbox @bind-Value="LoginInput.RememberMe"></InputCheckbox>
+                        </span>
+                        <p class="mud-typography mud-typography-body1">Remember me</p></label>
+                </div>
+            </div>
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Sign in</MudButton>
+        </EditForm>
+    </MudPaper>
+</MudContainer>
 
 @code {
-    [SupplyParameterFromForm] 
-    private LoginModel Input { get; set; } = new() { RememberMe = true };
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
+    
+    [SupplyParameterFromForm(FormName = "Local")] 
+    private LoginModel LoginInput { get; set; } = new() { RememberMe = true };
+
+    [SupplyParameterFromForm(FormName = "External")]
+    private object ExternalLoginInput { get; set; } = new();
+    
     private readonly ILogger _logger = Log.ForContext<Login>();
-    private string ErrorMessage = ""; 
+    private string ErrorMessage { get; set; } = null!;
     
     [SupplyParameterFromQuery] private string? ReturnUrl { get; set; }
 
+    protected override async Task OnInitializedAsync()
+    {
+        if (HttpMethods.IsGet(HttpContext.Request.Method))
+        {
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+        }
+    }
+
     private async Task SignIn()
     {
-        var result = await SignInManager.PasswordSignInAsync("janoxxx", Input.Password, Input.RememberMe, lockoutOnFailure: false);
-        if (result.Succeeded)
+        var user = await UserManager.FindByEmailAsync(LoginInput.Email);
+        if (user != null && !string.IsNullOrEmpty(user.UserName))
         {
-            _logger.Information("Login succeeded for user: {Email}", Input.Email);
-            NavigationManager.NavigateTo("/");
+            var result = await SignInManager.PasswordSignInAsync(user.UserName, LoginInput.Password, LoginInput.RememberMe, lockoutOnFailure: false);
+            if (result.Succeeded)
+            {
+                _logger.Information("Login succeeded for user: {Email}", LoginInput.Email);
+
+                var redirectUrl = string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl;
+                NavigationManager.NavigateTo(redirectUrl);
+            }
         }
-        else
-        {
-            ErrorMessage = "Invalid credentials";
-        }
+
+        ErrorMessage = "Invalid credentials";
     }
 }
