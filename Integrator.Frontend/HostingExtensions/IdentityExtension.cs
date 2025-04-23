@@ -21,6 +21,7 @@ public static class IdentityExtension
         {
             options.Cookie.HttpOnly = true;
             options.LoginPath = "/auth/login";
+            options.LogoutPath = "/auth/logout";
         });
         return services;
     }

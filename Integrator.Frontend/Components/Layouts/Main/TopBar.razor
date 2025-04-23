@@ -1,4 +1,6 @@
 ﻿@using Integrator.Frontend.Components.Layouts.Main.Components
+@inject NavigationManager NavigationManager
+
 <MudAppBar Elevation="0" Color="Color.Transparent">
     <MudIconButton Icon="@Icons.Material.Outlined.MenuOpen" Color="Color.Inherit" OnClick="DrawerToggle"></MudIconButton>
     <MudSpacer></MudSpacer>
@@ -12,7 +14,7 @@
         </ActivatorContent>
         <ChildContent>
             <MudMenuItem>Profile</MudMenuItem>
-            <MudMenuItem>Logout</MudMenuItem>
+            <MudMenuItem OnClick="Logout">Logout</MudMenuItem>
         </ChildContent>
     </MudMenu>
 </MudAppBar>
@@ -35,5 +37,10 @@
     protected async Task ChangeTheme()
     {
         await ChangeThemeClicked.InvokeAsync();
+    }
+
+    protected async Task Logout()
+    {
+        NavigationManager.NavigateTo("/auth/logout", true);
     }
 }

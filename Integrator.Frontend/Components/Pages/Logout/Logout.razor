@@ -1,4 +1,4 @@
-﻿@page "/logout"
+﻿@page "/auth/logout"
 @using Integrator.DataAccess.Models.Users
 @using Integrator.Frontend.Components.Layouts.Simple
 @using Microsoft.AspNetCore.Identity
@@ -11,7 +11,7 @@
     {
         await SignInManager.SignOutAsync();
         await base.OnInitializedAsync();
-        NavigationManager.NavigateTo("/login");
+        NavigationManager.NavigateTo("/auth/login");
     }
 
 }
