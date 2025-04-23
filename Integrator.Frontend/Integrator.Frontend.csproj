@@ -24,13 +24,8 @@
 
     <ItemGroup>
       <AdditionalFiles Include="Components\App.razor" />
-      <AdditionalFiles Include="Components\Layouts\Main\BottomFooter.razor" />
-      <AdditionalFiles Include="Components\Layouts\Main\MainLayout.razor" />
-      <AdditionalFiles Include="Components\Layouts\Main\SideBar.razor" />
-      <AdditionalFiles Include="Components\Layouts\Main\TopNavBar.razor" />
       <AdditionalFiles Include="Components\Pages\Counter.razor" />
       <AdditionalFiles Include="Components\Pages\Error.razor" />
-      <AdditionalFiles Include="Components\Pages\Home.razor" />
       <AdditionalFiles Include="Components\Pages\Weather.razor" />
       <AdditionalFiles Include="Components\Routes.razor" />
       <AdditionalFiles Include="Components\_Imports.razor" />
@@ -45,6 +40,7 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
+      <PackageReference Include="MudBlazor" Version="8.5.1" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
       <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.2" />
       <PackageReference Include="RestSharp" Version="112.1.0" />
@@ -62,7 +58,6 @@
 
     <ItemGroup>
       <Folder Include="Logs\Core\" />
-      <Folder Include="Services\" />
     </ItemGroup>
 
 </Project>

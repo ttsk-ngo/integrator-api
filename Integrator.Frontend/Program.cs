@@ -1,5 +1,6 @@
 using Integrator.Frontend.Components;
 using Integrator.Frontend.HostingExtensions;
+using MudBlazor.Services;
 using Serilog;
 
 try
@@ -17,9 +18,15 @@ try
     // Integrator identity database and setup
     builder.AddIntegratorIdentityDatabase();
     builder.Services.AddIntegratorIdentity();
+
+    builder.Services.AddCascadingAuthenticationState();
+    
     // Add services to the container.
     builder.Services.AddRazorComponents()
         .AddInteractiveServerComponents();
+    
+    // Add mudblazor
+    builder.Services.AddMudServices();
 
     var app = builder.Build();
 

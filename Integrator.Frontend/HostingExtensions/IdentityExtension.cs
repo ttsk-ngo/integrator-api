@@ -20,7 +20,8 @@ public static class IdentityExtension
         services.ConfigureApplicationCookie(options =>
         {
             options.Cookie.HttpOnly = true;
-            options.LoginPath = "/login";
+            options.LoginPath = "/auth/login";
+            options.LogoutPath = "/auth/logout";
         });
         return services;
     }
