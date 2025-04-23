@@ -1,4 +1,5 @@
-﻿<MudDrawer Elevation="1" @bind-Open="@DrawerOpen">
+﻿@using Microsoft.AspNetCore.Components.Authorization
+<MudDrawer Elevation="1" @bind-Open="@DrawerOpen">
     <MudContainer Class="pa-2 my-2 d-flex justify-center align-center" Elevation="0">
         <MudIcon Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit"></MudIcon>
         <MudText Typo="Typo.h5" Class="ml-3">Integrator 2.0</MudText>
@@ -7,7 +8,7 @@
     <MudContainer Class="d-flex justify-center align-center px-4 my-2">
         <MudAvatar Color="Color.Primary">J</MudAvatar>
         <MudContainer Class="d-flex justify-start flex-column pl-4">
-            <MudText Typo="Typo.body1">Janoxxx</MudText>
+            <MudText Typo="Typo.body1">@_username</MudText>
             <MudText Typo="Typo.body2">Developer</MudText>
         </MudContainer>
     </MudContainer>
@@ -28,4 +29,26 @@
 @code {
     [Parameter]
     public bool DrawerOpen { get; set; }
+    
+    [CascadingParameter] 
+    private Task<AuthenticationState>? AuthenticationState { get; set; }
+    
+    private string _username = "Guest";
+    private string _userRole = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthenticationState != null)
+        {
+            var authState = await AuthenticationState;
+            var user = authState.User;
+
+            if (user.Identity != null && user.Identity.Name != null)
+            {
+                _username = user.Identity.Name;
+            }
+        }
+
+        await base.OnInitializedAsync();
+    }
 }

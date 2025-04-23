@@ -18,6 +18,9 @@ try
     // Integrator identity database and setup
     builder.AddIntegratorIdentityDatabase();
     builder.Services.AddIntegratorIdentity();
+
+    builder.Services.AddCascadingAuthenticationState();
+    
     // Add services to the container.
     builder.Services.AddRazorComponents()
         .AddInteractiveServerComponents();

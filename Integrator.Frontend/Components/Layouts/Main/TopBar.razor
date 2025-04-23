@@ -1,4 +1,5 @@
 ﻿@using Integrator.Frontend.Components.Layouts.Main.Components
+@using Microsoft.AspNetCore.Components.Authorization
 @inject NavigationManager NavigationManager
 
 <MudAppBar Elevation="0" Color="Color.Transparent">
@@ -10,7 +11,7 @@
     
     <MudMenu Class="ml-2" Dense="true">
         <ActivatorContent>
-            <MudAvatar Color="Color.Primary">J</MudAvatar>
+            <MudAvatar Color="Color.Primary">@_username.ToUpper().ToCharArray()[0]</MudAvatar>
         </ActivatorContent>
         <ChildContent>
             <MudMenuItem>Profile</MudMenuItem>
@@ -42,5 +43,26 @@
     protected async Task Logout()
     {
         NavigationManager.NavigateTo("/auth/logout", true);
+    }
+
+    [CascadingParameter] 
+    private Task<AuthenticationState>? AuthenticationState { get; set; }
+    
+    private string _username = "Guest";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthenticationState != null)
+        {
+            var authState = await AuthenticationState;
+            var user = authState.User;
+
+            if (user.Identity != null && user.Identity.Name != null)
+            {
+                _username = user.Identity.Name;
+            }
+        }
+
+        await base.OnInitializedAsync();
     }
 }
