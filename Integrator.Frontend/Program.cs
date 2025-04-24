@@ -19,6 +19,9 @@ try
     builder.AddIntegratorIdentityDatabase();
     builder.Services.AddIntegratorIdentity();
 
+    // Integrator application database setup
+    builder.AddIntegratorDatabase();
+    
     builder.Services.AddCascadingAuthenticationState();
     
     // Add services to the container.
