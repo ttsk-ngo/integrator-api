@@ -2,8 +2,17 @@
 
 public class InvolvedUser : BaseModel
 {
+    public enum InvolvedUserRole
+    {
+        NotSet = 0,
+        AssignedModerator = 1,
+        Accuser = 2,
+        Accused = 3,
+        Witness = 4
+    }
+    
     public string UserId { get; set; } = null!;
-    public string Role { get; set; } = null!;
+    public InvolvedUserRole Role { get; set; }
     public string ViolatedRules { get; set; } = null!;
     
     public string? ComplaintId { get; set; }
