@@ -1,5 +1,5 @@
-using Integrator.Frontend.Components;
 using Integrator.Frontend.HostingExtensions;
+using Integrator.Frontend.WebInterface;
 using MudBlazor.Services;
 using Serilog;
 

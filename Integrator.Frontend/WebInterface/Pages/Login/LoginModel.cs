@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Integrator.Frontend.Components.Pages.Login;
+namespace Integrator.Frontend.WebInterface.Pages.Login;
 
 public class LoginModel
 {

@@ -23,12 +23,12 @@
     </ItemGroup>
 
     <ItemGroup>
-      <AdditionalFiles Include="Components\App.razor" />
-      <AdditionalFiles Include="Components\Pages\Counter.razor" />
-      <AdditionalFiles Include="Components\Pages\Error.razor" />
-      <AdditionalFiles Include="Components\Pages\Weather.razor" />
-      <AdditionalFiles Include="Components\Routes.razor" />
-      <AdditionalFiles Include="Components\_Imports.razor" />
+      <AdditionalFiles Include="WebInterface\App.razor" />
+      <AdditionalFiles Include="WebInterface\Pages\Counter.razor" />
+      <AdditionalFiles Include="WebInterface\Pages\Error.razor" />
+      <AdditionalFiles Include="WebInterface\Pages\Weather.razor" />
+      <AdditionalFiles Include="WebInterface\Routes.razor" />
+      <AdditionalFiles Include="WebInterface\_Imports.razor" />
     </ItemGroup>
 
     <ItemGroup>

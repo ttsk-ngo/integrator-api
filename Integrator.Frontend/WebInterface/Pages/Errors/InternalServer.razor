@@ -1,13 +1,13 @@
-﻿@page "/errors/404"
-@using Integrator.Frontend.Components.Layouts.Simple
+﻿@page "/errors/500"
+@using Integrator.Frontend.WebInterface.Layouts.Simple
 @layout SimpleLayout
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
 
 <div class="text-center">
-    <h1 class="display-1 fw-bold">404</h1>
-    <p class="h2">Page not found.</p>
-    <p class="lead fw-normal mt-3 mb-4">The page you are looking for might have been removed.</p>
+    <h1 class="display-1 fw-bold">500</h1>
+    <p class="h2">Internal server error.</p>
+    <p class="lead fw-normal mt-3 mb-4">The server encountered an unhandled error.</p>
     <a @onclick="ReturnToHomePage" class="btn btn-primary btn-lg">Return to website</a>
 </div>
 
