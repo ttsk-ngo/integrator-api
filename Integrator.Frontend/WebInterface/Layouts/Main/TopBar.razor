@@ -40,7 +40,7 @@
         await ChangeThemeClicked.InvokeAsync();
     }
 
-    protected async Task Logout()
+    protected void Logout()
     {
         NavigationManager.NavigateTo("/auth/logout", true);
     }
