@@ -1,29 +1,46 @@
-﻿namespace Integrator.DataAccess.Repositories;
+﻿using Integrator.DataAccess.DbContexts;
+using Microsoft.EntityFrameworkCore;
 
-public class Repository<TModel> : IRepository<TModel>
+namespace Integrator.DataAccess.Repositories;
+
+public class Repository<TModel> : IRepository<TModel>, IAsyncDisposable where TModel : class
 {
-    public TModel GetAll()
+    private readonly IntegratorDbContext _context;
+
+    public Repository(IntegratorDbContext context)
     {
-        throw new NotImplementedException();
+        _context = context;
     }
 
-    public TModel GetById(string id)
+    public async Task<ICollection<TModel>> GetAll()
     {
-        throw new NotImplementedException();
+        return await _context.Set<TModel>().ToListAsync();
     }
 
-    public TModel Add(TModel model)
+    public async Task<TModel?> GetById(string id)
     {
-        throw new NotImplementedException();
+        return await _context.Set<TModel>().FindAsync(id);
     }
 
-    public TModel Update(TModel model)
+    public async Task Add(TModel model)
     {
-        throw new NotImplementedException();
+        await _context.Set<TModel>().AddAsync(model);
     }
 
-    public TModel Remove(string id)
+    public void Remove(string id)
     {
-        throw new NotImplementedException();
+        var entity = _context.Set<TModel>().Find(id);
+        if (entity != null) 
+            _context.Set<TModel>().Remove(entity);
+    }
+
+    public void Dispose()
+    {
+        _context.Dispose();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await _context.DisposeAsync();
     }
 }
