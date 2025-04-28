@@ -1,6 +1,194 @@
 ﻿@page "/complaints"
-<h3>Complaints</h3>
+@using System.ComponentModel
+@using Integrator.DataAccess.Models.Complaints
+@using Integrator.Frontend.WebInterface.ViewModels
+@implements IDisposable
+
+@inject IComplaintsViewModel ViewModel
+
+<PageTitle>Complaints</PageTitle>
+
+<MudGrid Spacing="3" Class="px-3 py-3">
+    <MudItem xs="12">
+        <MudPaper>
+            <MudCard Elevation="0">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Complaints</MudText>
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary">New complaint</MudButton>
+                    </CardHeaderActions>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudDataGrid Items="@ViewModel.Complaints" Elevation="0">
+                        <Columns>
+                            <PropertyColumn Property="x => x.Number"></PropertyColumn>
+                            <PropertyColumn Property="x => x.InvolvedUsers.First(y => y.Role == InvolvedUser.InvolvedUserRole.Accused).Username" Title="Accused"></PropertyColumn>
+                            <PropertyColumn Property="x => x.Context"></PropertyColumn>
+                            <PropertyColumn Property="x => x.InvolvedUsers.First(y => y.Role == InvolvedUser.InvolvedUserRole.Accuser).Username" Title="Accuser"></PropertyColumn>
+                            <PropertyColumn Property="x => x.InvolvedUsers.First(y => y.Role == InvolvedUser.InvolvedUserRole.Witness).Username" Title="Witness"></PropertyColumn>
+                            <PropertyColumn Property="x => x.CreatedAt" Title="Created date"></PropertyColumn>
+                            <PropertyColumn Property="x => x.Status"></PropertyColumn>
+                        </Columns>
+                    </MudDataGrid>
+                </MudCardContent>
+            </MudCard>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudPaper Class="d-flex align-center justify-center mud-width-full py-8">xs=12 sm=6</MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudPaper Class="d-flex align-center justify-center mud-width-full py-8">xs=12 sm=6</MudPaper>
+    </MudItem>
+</MudGrid>
 
 @code {
     
+    protected override async Task OnInitializedAsync()
+    {
+        ViewModel.PropertyChanged += OnPropertyChangedHandler;
+        await ViewModel.LoadComplaintsAsync();
+        await base.OnInitializedAsync();
+    }
+
+    async void OnPropertyChangedHandler(object? sender, PropertyChangedEventArgs e)
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        ViewModel.PropertyChanged -= OnPropertyChangedHandler;
+    }
+    
+    public class Complain
+    {
+        public int Number { get; set; }         // Numer (#)
+        public string Sign { get; set; }         // Zachowujemy dla kompatybilności
+        public string Nickname { get; set; }     // Zmiana z Name
+        public string Context { get; set; }      // Zmiana z Position (zmiana typu!)
+        public string Victim { get; set; }       // Zmiana z Molar
+        public string Accused { get; set; }      // Zmiana z Group
+        public string Witness { get; set; }      // Nowe pole
+
+        // Dodatkowe właściwości, które mogą być przydatne
+        public string Description { get; set; }   // Opis skargi
+        public DateTime CreatedDate { get; set; } // Data utworzenia
+        public string Status { get; set; }        // Status skargi
+    }
+    
+    private Task OpenDialogAsync()
+    {
+        return Task.FromResult("");
+        /*var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
+        return DialogService.ShowAsync<DialogNewComplain>("New Complain", options);*/
+    }
+
+    public MudDataGrid<Complain> grid = null;
+
+    private async Task HideColumnsAsync(bool hide)
+    {
+        foreach (var column in grid.RenderedColumns)
+        {
+            if (hide)
+            {
+                await column.HideAsync();
+            }
+            else
+            {
+                await column.ShowAsync();
+            }
+        }
+    }
+    
+    public class ComplainsViewModel
+    {
+        public IEnumerable<Complain> Complains { get; private set; }
+
+        public DataGridFilterMode FilterMode { get; set; } = DataGridFilterMode.Simple;
+        public bool DragDropReorderingEnabled { get; set; } = true;
+        public bool ColumnsPanelReorderingEnabled { get; set; } = true;
+        public bool Hideable { get; set; } = true;
+        public bool Filterable { get; set; } = true;
+        public bool Groupable { get; set; } = true;
+        public bool HideVictim { get; set; } = false;        // Zmiana z HideMolar
+        public bool HideAccused { get; set; } = false;       // Zmiana z HideCategory
+        public bool GroupVictim { get; set; } = false;       // Zmiana z GroupMolar
+        public bool GroupAccused { get; set; } = false;      // Zmiana z GroupCategory
+
+        public ComplainsViewModel()
+        {
+            LoadMockData();
+        }
+
+        private void LoadMockData()
+        {
+            // Utworzenie przykładowych danych skarg
+            Complains = new List<Complain>
+            {
+                new Complain {
+                    Number = 1,
+                    Sign = "CPL-001",
+                    Nickname = "ShadowHunter42",
+                    Context = "Symulator",
+                    Victim = "BlazeFury",
+                    Accused = "ShadowHunter42",
+                    Witness = "ThunderBolt77",
+                    Description = "Używanie botów w symulatorze",
+                    CreatedDate = DateTime.Now.AddDays(-5),
+                    Status = "Open"
+                },
+                new Complain {
+                    Number = 2,
+                    Sign = "CPL-002",
+                    Nickname = "NightRider99",
+                    Context = "SWDR",
+                    Victim = "NightRider99",
+                    Accused = "ThunderBolt77",
+                    Witness = "StealthNinja21",
+                    Description = "Łamanie kodeksu jazdy SWDR",
+                    CreatedDate = DateTime.Now.AddDays(-3),
+                    Status = "In progress"
+                },
+                new Complain {
+                    Number = 3,
+                    Sign = "CPL-003",
+                    Nickname = "BlazeFury",
+                    Context = "chat",
+                    Victim = "StealthNinja21",
+                    Accused = "BlazeFury",
+                    Witness = "ShadowHunter42",
+                    Description = "Używanie wulgaryzmów na czacie",
+                    CreatedDate = DateTime.Now.AddDays(-1),
+                    Status = "Closed"
+                },
+                new Complain {
+                    Number = 4,
+                    Sign = "CPL-004",
+                    Nickname = "ThunderBolt77",
+                    Context = "forum",
+                    Victim = "ThunderBolt77",
+                    Accused = "NightRider99",
+                    Witness = "",
+                    Description = "Publikowanie niewłaściwych treści",
+                    CreatedDate = DateTime.Now,
+                    Status = "Open"
+                },
+                new Complain {
+                    Number = 5,
+                    Sign = "CPL-005",
+                    Nickname = "StealthNinja21",
+                    Context = "inne",
+                    Victim = "BlazeFury",
+                    Accused = "StealthNinja21",
+                    Witness = "NightRider99",
+                    Description = "Oszustwo",
+                    CreatedDate = DateTime.Now.AddHours(-12),
+                    Status = "In progress"
+                }
+            };
+        }
+    }
 }

@@ -13,7 +13,7 @@ public class InvolvedUser : BaseModel
     
     public string UserId { get; set; } = null!;
     public InvolvedUserRole Role { get; set; }
-    public string ViolatedRules { get; set; } = null!;
+    public string? ViolatedRules { get; set; }
     
     public string? ComplaintId { get; set; }
     public Complaint? Complaint { get; private set; }

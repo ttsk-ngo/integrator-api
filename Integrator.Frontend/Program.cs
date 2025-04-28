@@ -1,5 +1,6 @@
 using Integrator.Frontend.HostingExtensions;
 using Integrator.Frontend.WebInterface;
+using Integrator.Frontend.WebInterface.ViewModels;
 using MudBlazor.Services;
 using Serilog;
 
@@ -21,6 +22,8 @@ try
 
     // Integrator application database setup
     builder.AddIntegratorDatabase();
+
+    builder.Services.AddScoped<IComplaintsViewModel, ComplaintsViewModel>();
     
     builder.Services.AddCascadingAuthenticationState();
     
