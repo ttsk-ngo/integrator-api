@@ -81,13 +81,16 @@
         public string Status { get; set; }        // Status skargi
     }
      
-    private Task OpenDialogAsync()
+    private async Task OpenDialogAsync()
     {
-        //return Task.FromResult("");
-        //var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
-        //return DialogService.ShowAsync<DialogNewComplain>("Create a new complain", options);
-        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
-        return DialogService.ShowAsync<DialogNewComplain>("Create a new complain", options);
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
+        var dialogRef = await DialogService.ShowAsync<DialogNewComplain>("Create a new complain", options);
+        var result = await dialogRef.Result;
+
+        if (!result.Canceled)
+        {
+            var complainData = result.Data;
+        }
     }
 
     public MudDataGrid<Complain> grid = null;

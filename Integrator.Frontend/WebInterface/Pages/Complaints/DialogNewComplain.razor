@@ -138,7 +138,11 @@
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; }
 
-    private void Submit() => MudDialog.Close(DialogResult.Ok(ViewModel.GetComplainData()));
+    private void Submit() 
+    {
+        MudDialog.Close(DialogResult.Ok(ViewModel.GetComplainData()));
+        ViewModel.Reset();
+    }
 
     private void Cancel() => MudDialog.Cancel();
 

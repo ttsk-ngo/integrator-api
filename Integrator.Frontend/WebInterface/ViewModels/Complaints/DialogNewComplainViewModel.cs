@@ -26,6 +26,7 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
         void AddUserToComplain();
         void RemoveUserFromComplain(InvolvedUser user);
         Complaint GetComplainData();
+        void Reset();
     }
 
     public class DialogNewComplainViewModel : IDialogNewComplainViewModel
@@ -198,6 +199,15 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
         }
 
         public Complaint GetComplainData() => ComplainData;
+
+        public void Reset()
+        {
+            SelectedNickname = null;
+            SelectedContext = null;
+            SelectedUserRole = InvolvedUser.InvolvedUserRole.Accuser;
+            SelectedRule = null;
+            ComplainData = new Complaint();
+        }
     }
 }
 

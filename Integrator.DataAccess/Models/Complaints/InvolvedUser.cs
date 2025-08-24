@@ -17,7 +17,7 @@ public class InvolvedUser : BaseModel
         [Display(Name = "Accuser")]
         Accuser = 2,
 
-        [Display(Name = "Accused Person")]
+        [Display(Name = "Accused")]
         Accused = 3,
 
         [Display(Name = "Witness")]
