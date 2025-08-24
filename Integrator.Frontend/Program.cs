@@ -1,6 +1,9 @@
 using Integrator.Frontend.HostingExtensions;
 using Integrator.Frontend.WebInterface;
-using Integrator.Frontend.WebInterface.ViewModels;
+using Integrator.Frontend.WebInterface.Components;
+using Integrator.Frontend.WebInterface.ViewModels.Complaints;
+using Integrator.Frontend.WebInterface.ViewModels.Editor;
+using MudBlazor.Extensions;
 using MudBlazor.Services;
 using Serilog;
 
@@ -24,15 +27,18 @@ try
     builder.AddIntegratorDatabase();
 
     builder.Services.AddScoped<IComplaintsViewModel, ComplaintsViewModel>();
-    
+    builder.Services.AddScoped<IRichTextEditorViewModel, RichTextEditorViewModel>();
+    builder.Services.AddScoped<IDialogNewComplainViewModel, DialogNewComplainViewModel>();
+
     builder.Services.AddCascadingAuthenticationState();
     
     // Add services to the container.
     builder.Services.AddRazorComponents()
         .AddInteractiveServerComponents();
-    
+
+    builder.Services.AddLocalization();
     // Add mudblazor
-    builder.Services.AddMudServices();
+    builder.Services.AddMudServicesWithExtensions();
 
     var app = builder.Build();
 

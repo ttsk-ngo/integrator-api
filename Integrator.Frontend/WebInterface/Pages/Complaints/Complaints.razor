@@ -1,7 +1,8 @@
 ﻿@page "/complaints"
 @using System.ComponentModel
 @using Integrator.DataAccess.Models.Complaints
-@using Integrator.Frontend.WebInterface.ViewModels
+@using Integrator.Frontend.WebInterface.ViewModels.Complaints
+@using Integrator.Frontend.WebInterface.Pages.Complaints
 @implements IDisposable
 
 @inject IComplaintsViewModel ViewModel
@@ -17,7 +18,7 @@
                         <MudText Typo="Typo.h6">Complaints</MudText>
                     </CardHeaderContent>
                     <CardHeaderActions>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary">New complaint</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenDialogAsync">New complaint</MudButton>
                     </CardHeaderActions>
                 </MudCardHeader>
                 <MudCardContent>
@@ -45,6 +46,7 @@
 </MudGrid>
 
 @code {
+    [Inject] IDialogService DialogService { get; set; }
     
     protected override async Task OnInitializedAsync()
     {
@@ -78,12 +80,14 @@
         public DateTime CreatedDate { get; set; } // Data utworzenia
         public string Status { get; set; }        // Status skargi
     }
-    
+     
     private Task OpenDialogAsync()
     {
-        return Task.FromResult("");
-        /*var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
-        return DialogService.ShowAsync<DialogNewComplain>("New Complain", options);*/
+        //return Task.FromResult("");
+        //var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
+        //return DialogService.ShowAsync<DialogNewComplain>("Create a new complain", options);
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        return DialogService.ShowAsync<DialogNewComplain>("Create a new complain", options);
     }
 
     public MudDataGrid<Complain> grid = null;

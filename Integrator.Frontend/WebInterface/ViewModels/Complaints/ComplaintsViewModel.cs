@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using Integrator.DataAccess.Models.Complaints;
 using Integrator.Frontend.WebInterface.DisplayModels;
 
-namespace Integrator.Frontend.WebInterface.ViewModels;
+namespace Integrator.Frontend.WebInterface.ViewModels.Complaints;
 
 public interface IComplaintsViewModel
 {
@@ -51,7 +51,7 @@ public class ComplaintsViewModel : ViewModelBase, IComplaintsViewModel
                     }
                 },
                 Status = Complaint.ComplaintStatus.Open,
-                Context = Complaint.ComplaintContext.TrainDriver2,
+                Context = Complaint.ComplaintContext.Symulator,
                 Description = "Używanie botów w symulatorze",
                 CreatedAt = DateTime.Now.AddDays(-5)
             }

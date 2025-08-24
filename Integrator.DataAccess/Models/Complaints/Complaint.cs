@@ -1,4 +1,6 @@
-﻿namespace Integrator.DataAccess.Models.Complaints;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Integrator.DataAccess.Models.Complaints;
 
 public class Complaint : BaseModel
 {
@@ -11,12 +13,22 @@ public class Complaint : BaseModel
 
     public enum ComplaintContext
     {
-        NotSet = 0,
-        SWDR = 1,
-        TrainDriver2 = 2,
-        Forum = 3
+        [Display(Name = "SWDR")]
+        SWDR = 0,
+
+        [Display(Name = "Symulator")]
+        Symulator = 1,
+
+        [Display(Name = "Forum")]
+        Forum = 2,
+
+        [Display(Name = "Chat")]
+        Chat = 3,
+
+        [Display(Name = "Other")]
+        Other = 4
     }
-    
+
     public string Number { get; set; } = null!; // Easy to write complaint number
     public string Description { get; set; } = null!;
     public ComplaintStatus Status { get; set; }

@@ -1,0 +1,85 @@
+﻿@using Integrator.DataAccess.Models.Editor
+@using Integrator.Frontend.WebInterface.ViewModels.Editor
+@using MudExRichTextEditor
+@using MudExRichTextEditor.Extensibility
+@using Nextended.Core.Extensions
+@using Microsoft.Extensions.Localization
+@using Nextended.Blazor.Models
+@inject IStringLocalizer<RichTextEditorComponent> Localizer
+
+<MudExRichTextEdit @ref="_editor"
+                   Localizer="Localizer"
+                   Modules="@_modules"
+                   ReadOnly="@ViewModel.ReadOnly"
+                   Immediate="@ViewModel.UpdateValueOnChange"
+                   Height="@Height"
+                   EnableResize="true"
+                   CustomUploadFunc="ViewModel.OnUpload"
+                   Files="@ViewModel.Files"
+                   Class="@Class"
+                   Placeholder="@Placeholder"
+                   @bind-Value="ViewModel.EditorContent">
+
+</MudExRichTextEdit>
+
+@code {
+    [Parameter] public IRichTextEditorViewModel ViewModel { get; set; }
+    [Parameter] public string Height { get; set; } = "400px";
+    [Parameter] public string Class { get; set; } = "m-2";
+    [Parameter] public string Placeholder { get; set; } = "Type your text here...";
+
+    private MudExRichTextEdit _editor;
+    private IQuillModule[] _modules;
+
+    // Toolbar configuration
+    private object _toolbarOptions = new
+    {
+        container = new object[]
+        {
+            new string[] { "italic", "underline", "strike" }, // deleted "bold"
+            new object[] {
+                new object[] { "list", "ordered" },
+                new object[] { "list", "bullet" }
+            },
+            new string[] { "align" },
+            new string[] { "blockquote", "code-block" },
+            new string[] { "link", "image" },
+            new string[] { "clean" }
+        }
+    };
+
+    protected override void OnInitialized()
+    {
+        _modules =
+                [
+            new QuillMentionModule<User>(
+        (c, s) => Task.FromResult(ViewModel.Users.Where(user =>
+            user.FullName.Contains(s, StringComparison.InvariantCultureIgnoreCase))),
+        '@', '$')
+        .SetProperties(
+            m => m.MentionClicked = ViewModel.UserMentionClicked,
+            m => m.AfterMentionSelect = ViewModel.AfterUserMentionSelect),
+
+            new QuillMentionModule<Tag>(
+                (c, s) => Task.FromResult(ViewModel.Tags.Where(tag =>
+                    tag.Name.Contains(s, StringComparison.InvariantCultureIgnoreCase))),
+                '#')
+                .SetProperties(
+                    m => m.MentionClicked = ViewModel.TagMentionClicked)
+        ];
+
+        base.OnInitialized();
+    }
+
+    public async Task<IEnumerable<User>> GetMentionedUsers()
+    {
+        var allUsers = await _editor.GetModule<QuillMentionModule<User>>().GetMentionsFromContentAsync();
+        return allUsers.Select(mention => mention.Data);
+    }
+
+    public async Task<IEnumerable<Tag>> GetMentionedTags()
+    {
+        var allTags = await _editor.GetModule<QuillMentionModule<Tag>>().GetMentionsFromContentAsync();
+        return allTags.Select(mention => mention.Data);
+    }
+}
