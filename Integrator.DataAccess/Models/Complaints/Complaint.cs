@@ -2,7 +2,22 @@
 
 namespace Integrator.DataAccess.Models.Complaints;
 
-public class Complaint : BaseModel
+public interface IComplaint
+{
+    public string Id { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    string Number { get; set; }
+    string Description { get; set; }
+    Complaint.ComplaintStatus Status { get; set; }
+    Complaint.ComplaintContext Context { get; set; }
+    string Accuser();
+    string Accused();
+    string Witnesses();
+}
+
+
+public class Complaint : BaseModel, IComplaint
 {
     public enum ComplaintStatus
     {
@@ -29,10 +44,35 @@ public class Complaint : BaseModel
         Other = 4
     }
 
-    public string Number { get; set; } = null!; // Easy to write complaint number
+    public string Number { get; set; } = null!;
     public string Description { get; set; } = null!;
     public ComplaintStatus Status { get; set; }
     public ComplaintContext Context { get; set; }
-    
     public ICollection<InvolvedUser> InvolvedUsers { get; private set; } = new List<InvolvedUser>();
+
+
+    public string Accuser()
+    {
+        return InvolvedUsers
+            .Where(u => u.Role == InvolvedUser.InvolvedUserRole.Accuser)
+            .Select(u => u.Nickname)
+            .First();
+    }
+
+    public string Accused()
+    {
+        return InvolvedUsers
+            .Where(u => u.Role == InvolvedUser.InvolvedUserRole.Accused)
+            .Select(u => u.Nickname)
+            .First();
+    }
+
+    public string Witnesses()
+    {
+        var nicknames = InvolvedUsers
+            .Where(u => u.Role == InvolvedUser.InvolvedUserRole.Accused)
+            .Select(u => u.Nickname);
+
+        return nicknames.First();
+    }
 }
