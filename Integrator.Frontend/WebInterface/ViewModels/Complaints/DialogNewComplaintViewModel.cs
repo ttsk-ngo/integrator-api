@@ -1,18 +1,12 @@
 ﻿using Integrator.DataAccess.Models.Complaints;
 using MudBlazor;
-using MudBlazor.Extensions.Components;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 using static Integrator.DataAccess.Models.Complaints.Complaint;
 
 namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
 {
-    public interface IDialogNewComplainViewModel
+    public interface IDialogNewComplaintViewModel
     {
         ISnackbar Snackbar { get; }
         string? SelectedNickname { get; set; }
@@ -33,24 +27,15 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
         bool CheckDialogErrorBeforeSubmit(string? description);
     }
 
-    public class DialogNewComplainViewModel : IDialogNewComplainViewModel
+    public class DialogNewComplaintViewModel : IDialogNewComplaintViewModel
     {
-        private readonly ISnackbar _snackbar;
-
-        public ISnackbar Snackbar => _snackbar;
-
+        public ISnackbar Snackbar { get; }
         public string? SelectedNickname { get; set; }
         public ComplaintContext? SelectedContext { get; set; }
         public InvolvedUser.InvolvedUserRole? SelectedUserRole { get; set; }
         public string? SelectedRule { get; set; }
 
-        public DialogNewComplainViewModel(ISnackbar snackbar)
-        {
-            _snackbar = snackbar;
-
-            SelectedUserRole = InvolvedUser.InvolvedUserRole.Accuser;
-        }
-        public IComplaint ComplainData { get; private set; } = new Complaint();
+        public IComplaint ComplainData { get; private set; }
 
         private readonly Dictionary<ComplaintContext?, List<string>> _rulesForContexts = new()
             {
@@ -100,6 +85,14 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
             };
 
         public string[] Nicknames => nicknames;
+
+        public DialogNewComplaintViewModel(ISnackbar snackbar)
+        {
+            Snackbar = snackbar;
+            ComplainData = new Complaint();
+            SelectedUserRole = InvolvedUser.InvolvedUserRole.Accuser;
+        }
+
 
         // Search method for Autocomplete
         public async Task<IEnumerable<string>> SearchNicknames(string value, CancellationToken token)

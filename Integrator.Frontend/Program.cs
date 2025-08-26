@@ -28,7 +28,7 @@ try
 
     builder.Services.AddScoped<IComplaintsViewModel, ComplaintsViewModel>();
     builder.Services.AddScoped<IRichTextEditorViewModel, RichTextEditorViewModel>();
-    builder.Services.AddScoped<IDialogNewComplainViewModel, DialogNewComplainViewModel>();
+    builder.Services.AddScoped<IDialogNewComplaintViewModel, DialogNewComplaintViewModel>();
 
     builder.Services.AddCascadingAuthenticationState();
     
