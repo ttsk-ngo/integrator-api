@@ -76,7 +76,7 @@ public class Complaint : BaseModel, IComplaint
             .Where(u => u.Role == InvolvedUser.InvolvedUserRole.Witness)
             .Select(u => u.Nickname);
 
-        return nicknames.FirstOrDefault(@"b\d"); ;
+        return nicknames.FirstOrDefault(@"n\d"); ;
     }
 
     public bool IsAccusedSet()
