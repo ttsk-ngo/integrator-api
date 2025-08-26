@@ -1,8 +1,11 @@
 ﻿using Integrator.DataAccess.Models.Complaints;
 using MudBlazor;
+using MudBlazor.Extensions.Components;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using static Integrator.DataAccess.Models.Complaints.Complaint;
@@ -27,6 +30,7 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
         void RemoveUserFromComplain(InvolvedUser user);
         IComplaint GetComplainData();
         void Reset();
+        bool CheckDialogErrorBeforeSubmit(string? description);
     }
 
     public class DialogNewComplainViewModel : IDialogNewComplainViewModel
@@ -207,6 +211,31 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
             SelectedUserRole = InvolvedUser.InvolvedUserRole.Accuser;
             SelectedRule = null;
             ComplainData = new Complaint();
+        }
+
+        public bool CheckDialogErrorBeforeSubmit(string? description)
+        {
+            var decoded = WebUtility.HtmlDecode(description);
+            var text = Regex.Replace(decoded, "<.*?>", string.Empty);
+
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                Snackbar.Add("Description can not be empty.", Severity.Error);
+                return false;
+            }
+
+            if (!ComplainData.IsAccusedSet())
+            {
+                Snackbar.Add("The accused user has not been set.", Severity.Error);
+                return false;
+            }
+
+            if (!ComplainData.IsAccuserSet())
+            {
+                Snackbar.Add("The accusing user has not been set.", Severity.Error);
+                return false;
+            }
+            return true;
         }
     }
 }

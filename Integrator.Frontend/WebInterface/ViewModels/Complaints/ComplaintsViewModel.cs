@@ -62,6 +62,11 @@ public class ComplaintsViewModel : ViewModelBase, IComplaintsViewModel
 
     public void AddNewComplaint(IComplaint complaint)
     {
+        var now = DateTime.Now;
+        complaint.CreatedAt = now;
+        complaint.UpdatedAt = now;
+        complaint.Status = Complaint.ComplaintStatus.Open;
+        
         _complaints.Add(complaint);
         OnPropertyChanged(nameof(Complaints));
     }

@@ -140,6 +140,14 @@
 
     private void Submit() 
     {
+        string description = EditorViewModel.EditorContent;
+
+        if (!ViewModel.CheckDialogErrorBeforeSubmit(description))
+        {
+            return;
+        }
+        
+        ViewModel.ComplainData.Description = description;
         MudDialog.Close(DialogResult.Ok(ViewModel.GetComplainData()));
         ViewModel.Reset();
     }

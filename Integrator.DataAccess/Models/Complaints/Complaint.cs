@@ -15,6 +15,8 @@ public interface IComplaint
     string Accuser();
     string Accused();
     string Witnesses();
+    bool IsAccusedSet();
+    bool IsAccuserSet();
 }
 
 
@@ -57,7 +59,7 @@ public class Complaint : BaseModel, IComplaint
         return InvolvedUsers
             .Where(u => u.Role == InvolvedUser.InvolvedUserRole.Accuser)
             .Select(u => u.Nickname)
-            .First();
+            .FirstOrDefault(@"b\d");
     }
 
     public string Accused()
@@ -65,15 +67,29 @@ public class Complaint : BaseModel, IComplaint
         return InvolvedUsers
             .Where(u => u.Role == InvolvedUser.InvolvedUserRole.Accused)
             .Select(u => u.Nickname)
-            .First();
+            .FirstOrDefault(@"b\d"); ;
     }
 
     public string Witnesses()
     {
         var nicknames = InvolvedUsers
-            .Where(u => u.Role == InvolvedUser.InvolvedUserRole.Accused)
+            .Where(u => u.Role == InvolvedUser.InvolvedUserRole.Witness)
             .Select(u => u.Nickname);
 
-        return nicknames.First();
+        return nicknames.FirstOrDefault(@"b\d"); ;
+    }
+
+    public bool IsAccusedSet()
+    {
+        return InvolvedUsers
+            .Where(u => u.Role == InvolvedUser.InvolvedUserRole.Accused)
+            .Count() > 0;
+    }
+
+    public bool IsAccuserSet()
+    {
+        return InvolvedUsers
+            .Where(u => u.Role == InvolvedUser.InvolvedUserRole.Accuser)
+            .Count() > 0;
     }
 }

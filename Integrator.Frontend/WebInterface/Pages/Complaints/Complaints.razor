@@ -11,7 +11,7 @@
 
 <MudDataGrid T="IComplaint" @ref="grid" Items="ViewModel.Complaints" DragDropColumnReordering="true" ColumnsPanelReordering="true"
              ColumnResizeMode="ResizeMode.Column" Hideable="true" Filterable="true"
-             Groupable="true" FilterMode="DataGridFilterMode.Simple" ShowMenuIcon="true">
+             Groupable="false" FilterMode="DataGridFilterMode.Simple" ShowMenuIcon="true">
     <ToolBarContent>
         <MudSpacer />
         <MudIconButton Icon="@Icons.Material.Filled.Add"
@@ -33,7 +33,7 @@
         <PropertyColumn Property="x => x.Context" Title="Context" Hidden="false" Grouping="false"
                         Hideable="false" Filterable="true" Groupable="true" Sortable="true" />
 
-        <PropertyColumn Property="x => x.Accuser()" Title="Victim" Hidden="false" Grouping="false"
+        <PropertyColumn Property="x => x.Accuser()" Title="Accuser" Hidden="false" Grouping="false"
                         Hideable="false" Filterable="true" Groupable="true" Sortable="true" />
 
         <PropertyColumn Property="x => x.Accused()" Title="Accused" Hidden="false" Grouping="false"
@@ -82,11 +82,13 @@
         var dialogRef = await DialogService.ShowAsync<DialogNewComplain>("Create a new complain", options);
         var result = await dialogRef.Result;
 
-        if (!result.Canceled)
+        if (!(result?.Canceled ?? true))
         {
             var complainData = result.Data;
-            ViewModel.AddNewComplaint(complainData as IComplaint);
-            System.Console.WriteLine(complainData.ToString());
+            if (complainData is IComplaint)
+            {
+                ViewModel.AddNewComplaint((IComplaint)complainData);
+            }
         }
     }
 
