@@ -9,6 +9,7 @@ public interface IComplaintsViewModel
 {
     List<IComplaint> Complaints { get; }
     Task LoadComplaintsAsync();
+    void AddNewComplaint(IComplaint complaint);
     event PropertyChangedEventHandler? PropertyChanged;
     void OnPropertyChanged([CallerMemberName] string? propertyName = null);
 }
@@ -53,8 +54,15 @@ public class ComplaintsViewModel : ViewModelBase, IComplaintsViewModel
                 Status = Complaint.ComplaintStatus.Open,
                 Context = Complaint.ComplaintContext.Symulator,
                 Description = "Używanie botów w symulatorze",
-                CreatedAt = DateTime.Now.AddDays(-5)
+                CreatedAt = DateTime.Now.AddDays(-5),
+                UpdatedAt = DateTime.Now.AddDays(-1)
             }
         };
+    }
+
+    public void AddNewComplaint(IComplaint complaint)
+    {
+        _complaints.Add(complaint);
+        OnPropertyChanged(nameof(Complaints));
     }
 }

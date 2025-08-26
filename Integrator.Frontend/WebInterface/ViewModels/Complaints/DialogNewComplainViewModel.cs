@@ -16,7 +16,7 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
         ComplaintContext? SelectedContext { get; set; }
         InvolvedUser.InvolvedUserRole? SelectedUserRole { get; set; }
         string? SelectedRule { get; set; }
-        Complaint ComplainData { get; }
+        IComplaint ComplainData { get; }
         string[] Nicknames { get; }
         Task<IEnumerable<string>> SearchNicknames(string value, CancellationToken token);
         string GetSelectedClass(InvolvedUser.InvolvedUserRole option);
@@ -25,7 +25,7 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
         List<string> GetRulesForContext(ComplaintContext? context);
         void AddUserToComplain();
         void RemoveUserFromComplain(InvolvedUser user);
-        Complaint GetComplainData();
+        IComplaint GetComplainData();
         void Reset();
     }
 
@@ -46,7 +46,7 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
 
             SelectedUserRole = InvolvedUser.InvolvedUserRole.Accuser;
         }
-        public Complaint ComplainData { get; private set; } = new Complaint();
+        public IComplaint ComplainData { get; private set; } = new Complaint();
 
         private readonly Dictionary<ComplaintContext?, List<string>> _rulesForContexts = new()
             {
@@ -198,7 +198,7 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
             ComplainData.InvolvedUsers.Remove(user);
         }
 
-        public Complaint GetComplainData() => ComplainData;
+        public IComplaint GetComplainData() => ComplainData;
 
         public void Reset()
         {

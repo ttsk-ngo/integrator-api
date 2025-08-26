@@ -11,6 +11,7 @@ public interface IComplaint
     string Description { get; set; }
     Complaint.ComplaintStatus Status { get; set; }
     Complaint.ComplaintContext Context { get; set; }
+    ICollection<InvolvedUser> InvolvedUsers { get; }
     string Accuser();
     string Accused();
     string Witnesses();

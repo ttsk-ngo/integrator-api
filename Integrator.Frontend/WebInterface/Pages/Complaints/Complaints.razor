@@ -12,6 +12,15 @@
 <MudDataGrid T="IComplaint" @ref="grid" Items="ViewModel.Complaints" DragDropColumnReordering="true" ColumnsPanelReordering="true"
              ColumnResizeMode="ResizeMode.Column" Hideable="true" Filterable="true"
              Groupable="true" FilterMode="DataGridFilterMode.Simple" ShowMenuIcon="true">
+    <ToolBarContent>
+        <MudSpacer />
+        <MudIconButton Icon="@Icons.Material.Filled.Add"
+                       Color="Color.Primary"
+                       OnClick="OpenDialogAsync"
+                       Size="Size.Medium"
+                       Style="font-size: 28px;"
+                       Class="mr-2" />
+    </ToolBarContent>
     <Columns>
         <SelectColumn T="IComplaint" />
         <PropertyColumn Property="x => x.Number" Title="#" Hidden="false" Grouping="false"
@@ -33,7 +42,7 @@
         <PropertyColumn Property="x => x.Witnesses()" Title="Witnesses" Hidden="false" Grouping="false"
                         Hideable="true" Filterable="true" Groupable="false" Sortable="true" />
 
-        <PropertyColumn Property="x => x.CreatedAt" Title="Created" Format="dd/MM/yyyy" Hidden="false" Grouping="false" 
+        <PropertyColumn Property="x => x.CreatedAt" Title="Created" Format="dd/MM/yyyy" Hidden="false" Grouping="false"
                         Hideable="true" Filterable="true" Groupable="true" Sortable="true" />
 
         <PropertyColumn Property="x => x.UpdatedAt" Title="Updated" Format="dd/MM/yyyy HH:mm" Hidden="false" Grouping="false"
@@ -76,6 +85,8 @@
         if (!result.Canceled)
         {
             var complainData = result.Data;
+            ViewModel.AddNewComplaint(complainData as IComplaint);
+            System.Console.WriteLine(complainData.ToString());
         }
     }
 
