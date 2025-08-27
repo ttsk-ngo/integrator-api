@@ -1,10 +1,9 @@
+using Integrator.DataAccess.Models.Complaints;
 using Integrator.Frontend.HostingExtensions;
 using Integrator.Frontend.WebInterface;
-using Integrator.Frontend.WebInterface.Components;
 using Integrator.Frontend.WebInterface.ViewModels.Complaints;
 using Integrator.Frontend.WebInterface.ViewModels.Editor;
 using MudBlazor.Extensions;
-using MudBlazor.Services;
 using Serilog;
 
 try
@@ -29,6 +28,8 @@ try
     builder.Services.AddScoped<IComplaintsViewModel, ComplaintsViewModel>();
     builder.Services.AddScoped<IRichTextEditorViewModel, RichTextEditorViewModel>();
     builder.Services.AddScoped<IDialogNewComplaintViewModel, DialogNewComplaintViewModel>();
+
+    builder.Services.AddSingleton<IComplaintsList, ComplaintsList>();
 
     builder.Services.AddCascadingAuthenticationState();
     

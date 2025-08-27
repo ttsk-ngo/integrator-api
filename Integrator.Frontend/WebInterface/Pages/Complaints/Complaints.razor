@@ -9,7 +9,7 @@
 
 <PageTitle>Complaints</PageTitle>
 
-<MudDataGrid T="IComplaint" @ref="grid" Items="ViewModel.Complaints" DragDropColumnReordering="true" ColumnsPanelReordering="true"
+<MudDataGrid T="IComplaint" @ref="grid" Items="ViewModel.Complaints.AllComplaintsList" DragDropColumnReordering="true" ColumnsPanelReordering="true"
              ColumnResizeMode="ResizeMode.Column" Hideable="true" Filterable="true"
              Groupable="false" FilterMode="DataGridFilterMode.Simple" ShowMenuIcon="true">
     <ToolBarContent>
@@ -57,22 +57,22 @@
 
 @code {
     [Inject] IDialogService DialogService { get; set; }
+    public MudDataGrid<IComplaint> grid = null;
 
     protected override async Task OnInitializedAsync()
     {
-        ViewModel.PropertyChanged += OnPropertyChangedHandler;
-        await ViewModel.LoadComplaintsAsync();
+        ViewModel.Complaints.ComplaintAdded += OnPropertyChangedHandler;
         await base.OnInitializedAsync();
     }
 
-    async void OnPropertyChangedHandler(object? sender, PropertyChangedEventArgs e)
+    private async void OnPropertyChangedHandler(IComplaint complaint)
     {
         await InvokeAsync(StateHasChanged);
     }
 
     public void Dispose()
     {
-        ViewModel.PropertyChanged -= OnPropertyChangedHandler;
+        ViewModel.Complaints.ComplaintAdded -= OnPropertyChangedHandler;
     }
 
     private async Task OpenDialogAsync()
@@ -90,8 +90,6 @@
             }
         }
     }
-
-    public MudDataGrid<IComplaint> grid = null;
 
     /*private async Task HideColumnsAsync(bool hide)
     {

@@ -1,5 +1,4 @@
-﻿using Integrator.DataAccess.Models.Complaints;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using static Integrator.DataAccess.Models.Complaints.Complaint;
 
 namespace Integrator.DataAccess.Models.Complaints;
