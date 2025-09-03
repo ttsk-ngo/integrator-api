@@ -41,7 +41,9 @@
                 <MudPaper Class="d-flex gap-1 py-1" Elevation="0">
                     @foreach (var context in Enum.GetValues(typeof(InvolvedUser.InvolvedUserRole))
                                         .Cast<InvolvedUser.InvolvedUserRole>()
-                                        .Where(x => x != InvolvedUser.InvolvedUserRole.NotSet && x != InvolvedUser.InvolvedUserRole.AssignedModerator))
+                                        .Where(x => x != InvolvedUser.InvolvedUserRole.NotSet 
+                                        && x != InvolvedUser.InvolvedUserRole.AssignedModerator
+                                        && x != InvolvedUser.InvolvedUserRole.Accuser))
                     {
                         <MudButton Variant="@ViewModel.GetButtonVariant(context)"
                                    Color="@ViewModel.GetButtonColor(context)"
@@ -182,7 +184,6 @@
     {
         return role switch
         {
-            InvolvedUser.InvolvedUserRole.Accuser => Color.Error,
             InvolvedUser.InvolvedUserRole.Accused => Color.Warning,
             InvolvedUser.InvolvedUserRole.Witness => Color.Info,
             _ => Color.Default

@@ -3,7 +3,7 @@
 public interface IComplaintsList
 {
     List<IComplaint> AllComplaintsList { get; }
-    void AddNewComplaint(IComplaint complaint);
+    void AddNewComplaint(IComplaint complaint, string username, string userId = "0");
     event Action<IComplaint>? ComplaintAdded;
 }
 
@@ -20,14 +20,22 @@ public class ComplaintsList : IComplaintsList
         LoadComplaintsAsync();
     }
 
-    public void AddNewComplaint(IComplaint complaint)
+    public void AddNewComplaint(IComplaint complaint, string username, string userId = "0")
     {
         lock (_lock)
         {
+            var accuser = new InvolvedUser()
+            {
+                Role = InvolvedUser.InvolvedUserRole.Accuser,
+                UserId = userId,
+                Nickname = username
+            };
+
             var now = DateTime.Now;
             complaint.CreatedAt = now;
             complaint.UpdatedAt = now;
             complaint.Status = Complaint.ComplaintStatus.Open;
+            complaint.InvolvedUsers.Add(accuser);
             SetIdForNewComplaint(complaint);
 
             AllComplaintsList.Add(complaint);
@@ -39,15 +47,8 @@ public class ComplaintsList : IComplaintsList
     {
         AddNewComplaint(new Complaint()
         {
-            Number = "1/2024",
             InvolvedUsers =
             {
-                new InvolvedUser()
-                {
-                    Role = InvolvedUser.InvolvedUserRole.Accuser,
-                    UserId = "1",
-                    Nickname = "gagar"
-                },
                 new InvolvedUser()
                 {
                     Role = InvolvedUser.InvolvedUserRole.Accused,
@@ -67,7 +68,7 @@ public class ComplaintsList : IComplaintsList
             CreatedAt = DateTime.Now.AddDays(-5),
             UpdatedAt = DateTime.Now.AddDays(-1)
 
-        });
+        }, "gagarZBipom", "761");
     }
 
     private void SetIdForNewComplaint(IComplaint complaint)

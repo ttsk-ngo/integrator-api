@@ -5,7 +5,7 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints;
 public interface IComplaintsViewModel
 {
     IComplaintsList Complaints { get; }
-    void AddNewComplaint(IComplaint complaint);
+    void AddNewComplaint(IComplaint complaint, string username, string userId = "0");
     //event PropertyChangedEventHandler? PropertyChanged;
 }
 
@@ -18,8 +18,8 @@ public class ComplaintsViewModel : ViewModelBase, IComplaintsViewModel
 
     public IComplaintsList Complaints { get; private set; }
 
-    public void AddNewComplaint(IComplaint complaint)
+    public void AddNewComplaint(IComplaint complaint, string username, string userId = "0")
     {
-        Complaints.AddNewComplaint(complaint);
+        Complaints.AddNewComplaint(complaint, username, userId);
     }
 }

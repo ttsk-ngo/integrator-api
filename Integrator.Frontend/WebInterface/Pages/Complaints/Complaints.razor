@@ -3,9 +3,12 @@
 @using Integrator.DataAccess.Models.Complaints
 @using Integrator.Frontend.WebInterface.ViewModels.Complaints
 @using Integrator.Frontend.WebInterface.Pages.Complaints
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 @implements IDisposable
 
 @inject IComplaintsViewModel ViewModel
+@inject AuthenticationStateProvider AuthProvider
 
 <PageTitle>Complaints</PageTitle>
 
@@ -86,7 +89,12 @@
             var complainData = result.Data;
             if (complainData is IComplaint)
             {
-                ViewModel.AddNewComplaint((IComplaint)complainData);
+                var authState = await AuthProvider.GetAuthenticationStateAsync();
+                var user = authState.User;
+                var username = user.Identity?.Name ?? "Guest";
+                var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0";
+
+                ViewModel.AddNewComplaint((IComplaint)complainData, username, userId);
             }
         }
     }

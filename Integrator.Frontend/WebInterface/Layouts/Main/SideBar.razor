@@ -6,7 +6,7 @@
     </MudContainer>
     
     <MudContainer Class="d-flex justify-center align-center px-4 my-2">
-        <MudAvatar Color="Color.Primary">J</MudAvatar>
+        <MudAvatar Color="Color.Primary">@_username.ToUpper().ToCharArray()[0]</MudAvatar>
         <MudContainer Class="d-flex justify-start flex-column pl-4">
             <MudText Typo="Typo.body1">@_username</MudText>
             <MudText Typo="Typo.body2">Developer</MudText>

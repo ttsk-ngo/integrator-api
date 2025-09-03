@@ -223,11 +223,6 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
                 return false;
             }
 
-            if (!ComplainData.IsAccuserSet())
-            {
-                Snackbar.Add("The accusing user has not been set.", Severity.Error);
-                return false;
-            }
             return true;
         }
     }
