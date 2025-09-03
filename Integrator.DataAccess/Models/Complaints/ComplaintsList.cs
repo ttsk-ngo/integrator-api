@@ -1,4 +1,6 @@
-﻿namespace Integrator.DataAccess.Models.Complaints;
+﻿using Integrator.Shared.Helpers.Enums;
+
+namespace Integrator.DataAccess.Models.Complaints;
 
 public interface IComplaintsList
 {
@@ -31,11 +33,19 @@ public class ComplaintsList : IComplaintsList
                 Nickname = username
             };
 
+            var contexts = complaint.InvolvedUsers
+                .Where(u => u.Role == InvolvedUser.InvolvedUserRole.Accused || u.Role == InvolvedUser.InvolvedUserRole.Witness)
+                .Select(u => u.Context)
+                .Distinct()
+                .OrderBy(c => c.GetDisplayName())
+                .ToList();
+
             var now = DateTime.Now;
             complaint.CreatedAt = now;
             complaint.UpdatedAt = now;
             complaint.Status = Complaint.ComplaintStatus.Open;
             complaint.InvolvedUsers.Add(accuser);
+            complaint.Context = contexts;
             SetIdForNewComplaint(complaint);
 
             AllComplaintsList.Add(complaint);
@@ -53,20 +63,46 @@ public class ComplaintsList : IComplaintsList
                 {
                     Role = InvolvedUser.InvolvedUserRole.Accused,
                     UserId = "2",
-                    Nickname = "stonka"
+                    Nickname = "stonka",
+                    Context = Complaint.ComplaintContext.Symulator
+                },
+                new InvolvedUser()
+                {
+                    Role = InvolvedUser.InvolvedUserRole.Accused,
+                    UserId = "2",
+                    Nickname = "stonka",
+                    Context = Complaint.ComplaintContext.SWDR
+                },
+                new InvolvedUser()
+                {
+                    Role = InvolvedUser.InvolvedUserRole.Accused,
+                    UserId = "5",
+                    Nickname = "turboStonka",
+                    Context = Complaint.ComplaintContext.Other
                 },
                 new InvolvedUser()
                 {
                     Role = InvolvedUser.InvolvedUserRole.Witness,
                     UserId = "3",
-                    Nickname = "byk"
+                    Nickname = "byk",
+                    Context = Complaint.ComplaintContext.Chat
+                },
+                new InvolvedUser()
+                {
+                    Role = InvolvedUser.InvolvedUserRole.Witness,
+                    UserId = "4",
+                    Nickname = "superSkladDoLwowka",
+                    Context = Complaint.ComplaintContext.Forum
+                },
+                new InvolvedUser()
+                {
+                    Role = InvolvedUser.InvolvedUserRole.Witness,
+                    UserId = "4",
+                    Nickname = "superSkladDoLwowka",
+                    Context = Complaint.ComplaintContext.Chat
                 }
             },
-            Status = Complaint.ComplaintStatus.Open,
-            Context = Complaint.ComplaintContext.Symulator,
             Description = "Używanie botów w symulatorze",
-            CreatedAt = DateTime.Now.AddDays(-5),
-            UpdatedAt = DateTime.Now.AddDays(-1)
 
         }, "gagarZBipom", "761");
     }

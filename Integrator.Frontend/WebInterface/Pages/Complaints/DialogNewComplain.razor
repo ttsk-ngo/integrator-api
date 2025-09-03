@@ -140,6 +140,15 @@
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; }
 
+    [Parameter]
+    public string AccuserNickname { get; set; }
+
+    protected override void OnInitialized()
+    {
+        ViewModel.AccuserNickname = AccuserNickname;
+        base.OnInitialized();
+    }
+
     private void Submit() 
     {
         string description = EditorViewModel.EditorContent;

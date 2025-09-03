@@ -13,8 +13,10 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
         ComplaintContext? SelectedContext { get; set; }
         InvolvedUser.InvolvedUserRole? SelectedUserRole { get; set; }
         string? SelectedRule { get; set; }
+        string AccuserNickname { get; set; }
         IComplaint ComplainData { get; }
         string[] Nicknames { get; }
+
         Task<IEnumerable<string>> SearchNicknames(string value, CancellationToken token);
         string GetSelectedClass(InvolvedUser.InvolvedUserRole option);
         Variant GetButtonVariant(InvolvedUser.InvolvedUserRole option);
@@ -34,7 +36,7 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
         public ComplaintContext? SelectedContext { get; set; }
         public InvolvedUser.InvolvedUserRole? SelectedUserRole { get; set; }
         public string? SelectedRule { get; set; }
-
+        public string AccuserNickname { get; set; }
         public IComplaint ComplainData { get; private set; }
 
         private readonly Dictionary<ComplaintContext?, List<string>> _rulesForContexts = new()
@@ -80,7 +82,7 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
 
         // Data sources
         private readonly string[] nicknames = {
-                "trichlor", "Mr_bar", "Drozda32", "_l0stfake7", "xoorbes",
+                "trichlor", "Mr_bar", "Drozda32", "_l0stfake7", "xoorbes", "Guest"
                 // ... other nicknames
             };
 
@@ -90,7 +92,8 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
         {
             Snackbar = snackbar;
             ComplainData = new Complaint();
-            SelectedUserRole = InvolvedUser.InvolvedUserRole.Accuser;
+            SelectedUserRole = InvolvedUser.InvolvedUserRole.Accused;
+            AccuserNickname = string.Empty;
         }
 
 
@@ -103,10 +106,13 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
                 return Array.Empty<string>();
 
             // Filter nicknames, excluding those already in the table
-            var alreadyAddedNicknames = ComplainData.InvolvedUsers.Select(u => u.Nickname).ToHashSet();
+            var alreadyAddedNicknames = ComplainData.InvolvedUsers
+                .Where(u => u.Role != SelectedUserRole)
+                .Select(u => u.Nickname)
+                .ToHashSet();
 
             return Nicknames
-                .Where(x => !alreadyAddedNicknames.Contains(x))
+                .Where(x => !alreadyAddedNicknames.Contains(x) && !x.Equals(AccuserNickname))
                 .Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
         }
 
@@ -128,7 +134,6 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
 
             return option switch
             {
-                InvolvedUser.InvolvedUserRole.Accuser => Color.Error,
                 InvolvedUser.InvolvedUserRole.Accused => Color.Warning,
                 InvolvedUser.InvolvedUserRole.Witness => Color.Info,
                 _ => Color.Primary
@@ -149,24 +154,6 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
             if (string.IsNullOrWhiteSpace(SelectedNickname) ||
                 SelectedContext == null)
                 return;
-
-            // Check if the user is already on the list
-            var existingUser = ComplainData.InvolvedUsers.FirstOrDefault(u =>
-                u.Nickname == SelectedNickname); //Removed context check for user
-
-            if (existingUser != null)
-            {
-                // If the user already exists and is "Accused" and a rule is selected,
-                // add it to the existing list of rules
-                if (SelectedUserRole == InvolvedUser.InvolvedUserRole.Accused &&
-                    !string.IsNullOrEmpty(SelectedRule) &&
-                    !existingUser.ViolatedRules.Contains(SelectedRule))
-                {
-                    existingUser.ViolatedRules += (string.IsNullOrEmpty(existingUser.ViolatedRules) ? "" : ", ") +
-                                                 SelectedRule;
-                }
-                return;
-            }
 
             // Determine violated rules
             string violatedRules = "";
@@ -201,7 +188,7 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
         {
             SelectedNickname = null;
             SelectedContext = null;
-            SelectedUserRole = InvolvedUser.InvolvedUserRole.Accuser;
+            SelectedUserRole = InvolvedUser.InvolvedUserRole.Accused;
             SelectedRule = null;
             ComplainData = new Complaint();
         }

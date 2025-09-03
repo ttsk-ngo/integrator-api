@@ -6,7 +6,6 @@ public interface IComplaintsViewModel
 {
     IComplaintsList Complaints { get; }
     void AddNewComplaint(IComplaint complaint, string username, string userId = "0");
-    //event PropertyChangedEventHandler? PropertyChanged;
 }
 
 public class ComplaintsViewModel : ViewModelBase, IComplaintsViewModel

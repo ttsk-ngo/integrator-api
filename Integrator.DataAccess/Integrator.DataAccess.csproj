@@ -12,4 +12,8 @@
       <PackageReference Include="MudExRichTextEditor" Version="8.5.2" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Integrator.Shared\Integrator.Shared.csproj" />
+    </ItemGroup>
+
 </Project>
