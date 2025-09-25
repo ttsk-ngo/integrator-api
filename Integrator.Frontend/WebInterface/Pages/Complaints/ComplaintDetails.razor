@@ -12,100 +12,100 @@
 
 <PageTitle>Complaint</PageTitle>
 
-<MudGrid Justify="Justify.Center" Style="padding: 20px;">
-    @* Main section *@
-    <MudItem xs="12">
-        <MudGrid Spacing="4">
+@* Number *@
+<MudText Typo="Typo.h5" GutterBottom="true" Style="padding: 20px 20px 10px 20px;">
+    Complaint: <span style="font-weight: 500;">@ViewModel.ComplaintNumber</span>
+</MudText>
 
-            @* LEFT COLUMN: Users, Context, Rules *@
-            <MudItem xs="12" md="6">
-                @* Complaint Number *@
-                <MudText Typo="Typo.h5" GutterBottom="true">
-                    Complaint: <span style="font-weight: 500;">@ViewModel.ComplaintNumber</span>
+<MudGrid Spacing="4" Class="px-4">
+
+    @* LEFT COLUMN *@
+    <MudItem xs="12" md="5">
+        <MudStack Spacing="3" Class="py-2" Style="max-height: calc(100vh - 140px); overflow-y: auto;">
+
+            @* Context *@
+            <MudText Typo="Typo.subtitle1">
+                Context: <span style="font-weight: 500;">@ViewModel.Complaint.ContextToString()</span>
+            </MudText>
+
+            @* Users and rules *@
+            <MudTable Items="@ViewModel.Complaint.InvolvedUsers" Hover="true" Dense="true" Bordered="false" Striped="true">
+                <HeaderContent>
+                    <MudTh Class="text-center">Nickname</MudTh>
+                    <MudTh Class="text-center">Role</MudTh>
+                    <MudTh Class="text-center">Context</MudTh>
+                    <MudTh Class="text-center">Violated Rules</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Nickname" Class="align-middle">@context.Nickname</MudTd>
+                    <MudTd DataLabel="Role" Class="text-center align-middle">
+                        <MudChip T="string"
+                                 Color="@GetChipColor(context.Role)"
+                                 Size="Size.Small"
+                                 Variant="Variant.Filled">
+                            @context.Role
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Context" Class="text-center align-middle">@context.Context</MudTd>
+                    <MudTd DataLabel="Violated Rules" Class="align-middle">@(string.IsNullOrEmpty(context.ViolatedRules) ? "-" : context.ViolatedRules)</MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <MudText>No users added.</MudText>
+                </NoRecordsContent>
+            </MudTable>
+
+            @* Add responce *@
+            <MudStack Spacing="1" Class="mt-5">
+                <RichTextEditorComponent ViewModel="EditorViewModel"
+                                         Height="300px"
+                                         Class="mt-2"
+                                         Placeholder="Add a comment..." />
+                <MudButton OnClick="HandleNewResponse" Variant="Variant.Filled" Color="Color.Warning" FullWidth="true" Style="font-weight: 600; text-transform: none;">
+                    Add New Response
+                </MudButton>
+            </MudStack>
+
+        </MudStack>
+    </MudItem>
+
+    @* RIGHT COLUMN *@
+    <MudItem xs="12" md="7">
+        <MudStack Spacing="3" Class="py-2" Style="max-height: calc(100vh - 140px); overflow-y: auto;">
+
+            @* Description *@
+            <MudPaper Elevation="0" Class="pa-4" Style="background-color: #f8f8f8">
+                <MudText Typo="Typo.subtitle1" Style="font-weight: 600; margin-bottom: 5px;">
+                    @ViewModel.Complaint.Accuser()
                 </MudText>
+                <MudText Typo="Typo.body2" Class="mb-1">
+                    @ViewModel.Complaint.Description
+                </MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    @ViewModel.Complaint.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                </MudText>
+            </MudPaper>
 
-                <MudStack Spacing="3">
-
-                    @* Context *@
-                    <MudText Typo="Typo.subtitle1" Class="mt-2">
-                        Context: <span style="font-weight: 500;">@ViewModel.Complaint.ContextToString()</span>
+            @* Responces *@
+            @{
+                int i = 0;
+            }
+            @foreach (var response in ViewModel.Complaint.Responses)
+            {
+                var backgroundColor = i % 2 == 0 ? "#e8e8e8;" : "#f8f8f8;";
+                <MudPaper Elevation="0" Class="pa-4 mt-2" Style="@($"background-color: {backgroundColor};")">
+                    <MudText Typo="Typo.subtitle1" Style="font-weight: 600; margin-bottom: 5px;">
+                        @response.ResponderName
                     </MudText>
-
-                    @* Users and rules *@
-                    <MudTable Items="@ViewModel.Complaint.InvolvedUsers" Hover="true" Dense="true" Bordered="false" Striped="true">
-                        <HeaderContent>
-                            <MudTh Class="text-center">Nickname</MudTh>
-                            <MudTh Class="text-center">Role</MudTh>
-                            <MudTh Class="text-center">Context</MudTh>
-                            <MudTh Class="text-center">Violated Rules</MudTh>
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd DataLabel="Nickname" Class="align-middle">@context.Nickname</MudTd>
-                            <MudTd DataLabel="Role" Class="text-center align-middle">
-                                <MudChip T="string"
-                                         Color="@GetChipColor(context.Role)"
-                                         Size="Size.Small"
-                                         Variant="Variant.Filled">
-                                    @context.Role
-                                </MudChip>
-                            </MudTd>
-                            <MudTd DataLabel="Context" Class="text-center align-middle">@context.Context</MudTd>
-                            <MudTd DataLabel="Violated Rules" Class="align-middle">@(string.IsNullOrEmpty(context.ViolatedRules) ? "-" : context.ViolatedRules)</MudTd>
-                        </RowTemplate>
-
-                        <NoRecordsContent>
-                            <MudText>No users added.</MudText>
-                        </NoRecordsContent>
-                    </MudTable>
-
-                    @* Add responce *@
-                    <MudItem xs="12">
-                        <RichTextEditorComponent ViewModel="EditorViewModel"
-                                                 Height="300px"
-                                                 Class="m-2"
-                                                 Placeholder="Add a comment..." />
-                    </MudItem>
-                    <MudButton OnClick="HandleNewResponse" Variant="Variant.Filled" Color="Color.Warning" FullWidth="true" Style="font-weight: 600; text-transform: none;">
-                        Add New Response
-                    </MudButton>
-                </MudStack>
-            </MudItem>
-
-            @* RIGHT COLUMN: Description and responces *@
-            <MudItem xs="12" md="6">
-                <MudStack Spacing="3">
-
-                    @* Description *@
-                    <MudPaper Elevation="0" Class="pa-4">
-                        <MudText Typo="Typo.subtitle1" Style="font-weight: 600; margin-bottom: 5px;">
-                            @ViewModel.Complaint.Accuser()
-                        </MudText>
-                        <MudText Typo="Typo.body2" Class="mb-1">
-                            @ViewModel.Complaint.Description
-                        </MudText>
-                        <MudText Typo="Typo.caption" Color="Color.Secondary">
-                            @ViewModel.Complaint.CreatedAt.ToString("yyyy-MM-dd HH:mm")
-                        </MudText>
-                    </MudPaper>
-
-                    @* Responces *@
-                    @foreach (var response in ViewModel.Complaint.Responses)
-                    {
-                        <MudPaper Elevation="0" Class="pa-4 mt-2">
-                            <MudText Typo="Typo.subtitle1" Style="font-weight: 600; margin-bottom: 5px;">
-                                @response.ResponderName
-                            </MudText>
-                            <MudText Typo="Typo.body2" Class="mb-1">
-                                @response.Content
-                            </MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                @response.ResponceDate.ToString("yyyy-MM-dd HH:mm")
-                            </MudText>
-                        </MudPaper>
-                    }
-                </MudStack>
-            </MudItem>
-        </MudGrid>
+                    <MudText Typo="Typo.body2" Class="mb-1">
+                        @response.Content
+                    </MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        @response.ResponceDate.ToString("yyyy-MM-dd HH:mm")
+                    </MudText>
+                </MudPaper>
+                i++;
+            }
+        </MudStack>
     </MudItem>
 </MudGrid>
 
