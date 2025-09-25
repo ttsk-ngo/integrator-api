@@ -1,6 +1,4 @@
 ﻿using Integrator.Shared.Helpers.Enums;
-using Microsoft.AspNetCore.Components;
-using Nextended.Core.Extensions;
 using System.ComponentModel.DataAnnotations;
 using static Integrator.DataAccess.Models.Complaints.Complaint;
 
@@ -21,6 +19,7 @@ public interface IComplaint
     string Witnesses();
     bool IsAccusedSet();
     string ContextToString();
+    ICollection<ComplaintResponce> Responses { get; set; }
 }
 
 
@@ -90,11 +89,13 @@ public class Complaint : BaseModel, IComplaint
     {
         return InvolvedUsers
             .Where(u => u.Role == InvolvedUser.InvolvedUserRole.Accused)
-            .Count() > 0;
+            .Any();
     }
 
     public string ContextToString()
     {
         return string.Join("; ", Context.Select(c => c.GetDisplayName()));
     }
+
+    public ICollection<ComplaintResponce> Responses { get; set; } = new List<ComplaintResponce>();
 }

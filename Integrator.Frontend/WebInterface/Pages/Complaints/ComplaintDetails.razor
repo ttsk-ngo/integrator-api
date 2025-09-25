@@ -1,0 +1,144 @@
+﻿@page "/complaints/{Number}"
+
+@using Integrator.DataAccess.Models.Complaints
+@using Integrator.Frontend.WebInterface.ViewModels.Complaints
+@using Integrator.Frontend.WebInterface.Pages.Complaints
+@using Integrator.Frontend.WebInterface.Components
+@using Integrator.Frontend.WebInterface.ViewModels.Editor
+@using Integrator.Shared.ErrorHandling
+
+@inject IComplaintDetailsViewModel ViewModel
+@inject IRichTextEditorViewModel EditorViewModel
+
+<PageTitle>Complaint</PageTitle>
+
+<MudGrid Justify="Justify.Center" Style="padding: 20px;">
+    @* Main section *@
+    <MudItem xs="12">
+        <MudGrid Spacing="4">
+
+            @* LEFT COLUMN: Users, Context, Rules *@
+            <MudItem xs="12" md="6">
+                @* Complaint Number *@
+                <MudText Typo="Typo.h5" GutterBottom="true">
+                    Complaint: <span style="font-weight: 500;">@ViewModel.ComplaintNumber</span>
+                </MudText>
+
+                <MudStack Spacing="3">
+
+                    @* Context *@
+                    <MudText Typo="Typo.subtitle1" Class="mt-2">
+                        Context: <span style="font-weight: 500;">@ViewModel.Complaint.ContextToString()</span>
+                    </MudText>
+
+                    @* Users and rules *@
+                    <MudTable Items="@ViewModel.Complaint.InvolvedUsers" Hover="true" Dense="true" Bordered="false" Striped="true">
+                        <HeaderContent>
+                            <MudTh Class="text-center">Nickname</MudTh>
+                            <MudTh Class="text-center">Role</MudTh>
+                            <MudTh Class="text-center">Context</MudTh>
+                            <MudTh Class="text-center">Violated Rules</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Nickname" Class="align-middle">@context.Nickname</MudTd>
+                            <MudTd DataLabel="Role" Class="text-center align-middle">
+                                <MudChip T="string"
+                                         Color="@GetChipColor(context.Role)"
+                                         Size="Size.Small"
+                                         Variant="Variant.Filled">
+                                    @context.Role
+                                </MudChip>
+                            </MudTd>
+                            <MudTd DataLabel="Context" Class="text-center align-middle">@context.Context</MudTd>
+                            <MudTd DataLabel="Violated Rules" Class="align-middle">@(string.IsNullOrEmpty(context.ViolatedRules) ? "-" : context.ViolatedRules)</MudTd>
+                        </RowTemplate>
+
+                        <NoRecordsContent>
+                            <MudText>No users added.</MudText>
+                        </NoRecordsContent>
+                    </MudTable>
+
+                    @* Add responce *@
+                    <MudItem xs="12">
+                        <RichTextEditorComponent ViewModel="EditorViewModel"
+                                                 Height="300px"
+                                                 Class="m-2"
+                                                 Placeholder="Add a comment..." />
+                    </MudItem>
+                    <MudButton OnClick="HandleNewResponse" Variant="Variant.Filled" Color="Color.Warning" FullWidth="true" Style="font-weight: 600; text-transform: none;">
+                        Add New Response
+                    </MudButton>
+                </MudStack>
+            </MudItem>
+
+            @* RIGHT COLUMN: Description and responces *@
+            <MudItem xs="12" md="6">
+                <MudStack Spacing="3">
+
+                    @* Description *@
+                    <MudPaper Elevation="0" Class="pa-4">
+                        <MudText Typo="Typo.subtitle1" Style="font-weight: 600; margin-bottom: 5px;">
+                            @ViewModel.Complaint.Accuser()
+                        </MudText>
+                        <MudText Typo="Typo.body2" Class="mb-1">
+                            @ViewModel.Complaint.Description
+                        </MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            @ViewModel.Complaint.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                        </MudText>
+                    </MudPaper>
+
+                    @* Responces *@
+                    @foreach (var response in ViewModel.Complaint.Responses)
+                    {
+                        <MudPaper Elevation="0" Class="pa-4 mt-2">
+                            <MudText Typo="Typo.subtitle1" Style="font-weight: 600; margin-bottom: 5px;">
+                                @response.ResponderName
+                            </MudText>
+                            <MudText Typo="Typo.body2" Class="mb-1">
+                                @response.Content
+                            </MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @response.ResponceDate.ToString("yyyy-MM-dd HH:mm")
+                            </MudText>
+                        </MudPaper>
+                    }
+                </MudStack>
+            </MudItem>
+        </MudGrid>
+    </MudItem>
+</MudGrid>
+
+
+@code {
+    [Parameter] public string Number { get; set; }
+
+    [Inject] NavigationManager NavigationManager { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        ViewModel.SetFileds(Number);
+
+        if (ViewModel.Complaint == null)
+        {
+            NavigationManager.NavigateTo($"/errors/404");
+        }
+
+        await base.OnInitializedAsync();
+    }
+
+    private Color GetChipColor(InvolvedUser.InvolvedUserRole role)
+    {
+        return role switch
+        {
+            InvolvedUser.InvolvedUserRole.Accused => Color.Warning,
+            InvolvedUser.InvolvedUserRole.Witness => Color.Info,
+            _ => Color.Default
+        };
+    }
+
+    private void HandleNewResponse()
+    {
+        Console.WriteLine("Add new response clicked");
+    }
+}

@@ -12,9 +12,18 @@
 
 <PageTitle>Complaints</PageTitle>
 
-<MudDataGrid T="IComplaint" @ref="grid" Items="ViewModel.Complaints.AllComplaintsList" DragDropColumnReordering="true" ColumnsPanelReordering="true"
-             ColumnResizeMode="ResizeMode.Column" Hideable="true" Filterable="true"
-             Groupable="false" FilterMode="DataGridFilterMode.Simple" ShowMenuIcon="true">
+<MudDataGrid T="IComplaint" 
+             @ref="grid" 
+             Items="ViewModel.Complaints.AllComplaintsList"     
+             RowClick="OnRowClicked"
+             DragDropColumnReordering="true"
+             ColumnsPanelReordering="true"
+             ColumnResizeMode="ResizeMode.Column"
+             Hideable="true"
+             Filterable="true"
+             Groupable="false"
+             FilterMode="DataGridFilterMode.Simple"
+             ShowMenuIcon="true">
     <ToolBarContent>
         <MudSpacer />
         <MudIconButton Icon="@Icons.Material.Filled.Add"
@@ -60,6 +69,8 @@
 
 @code {
     [Inject] IDialogService DialogService { get; set; }
+    [Inject] NavigationManager NavigationManager { get; set; }
+
     public MudDataGrid<IComplaint> grid = null;
 
     protected override async Task OnInitializedAsync()
@@ -102,6 +113,13 @@
                 ViewModel.AddNewComplaint((IComplaint)complainData, username, userId);
             }
         }
+    }
+
+    private void OnRowClicked(DataGridRowClickEventArgs<IComplaint> args)
+    {
+        var complaint = args.Item;
+        var safeNumber = complaint.Number.Replace("/", "-");
+        NavigationManager.NavigateTo($"/complaints/{safeNumber}");
     }
 
     /*private async Task HideColumnsAsync(bool hide)

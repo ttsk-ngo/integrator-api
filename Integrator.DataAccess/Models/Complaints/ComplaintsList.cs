@@ -64,21 +64,24 @@ public class ComplaintsList : IComplaintsList
                     Role = InvolvedUser.InvolvedUserRole.Accused,
                     UserId = "2",
                     Nickname = "stonka",
-                    Context = Complaint.ComplaintContext.Symulator
+                    Context = Complaint.ComplaintContext.Symulator,
+                    ViolatedRules = "Test 1"
                 },
                 new InvolvedUser()
                 {
                     Role = InvolvedUser.InvolvedUserRole.Accused,
                     UserId = "2",
                     Nickname = "stonka",
-                    Context = Complaint.ComplaintContext.SWDR
+                    Context = Complaint.ComplaintContext.SWDR,
+                    ViolatedRules = "Test 2"
                 },
                 new InvolvedUser()
                 {
                     Role = InvolvedUser.InvolvedUserRole.Accused,
                     UserId = "5",
                     Nickname = "turboStonka",
-                    Context = Complaint.ComplaintContext.Other
+                    Context = Complaint.ComplaintContext.Other,
+                    ViolatedRules = "Test 3"
                 },
                 new InvolvedUser()
                 {
@@ -102,6 +105,13 @@ public class ComplaintsList : IComplaintsList
                     Context = Complaint.ComplaintContext.Chat
                 }
             },
+            Responses = Enumerable.Range(0, 20)
+                .Select(i => new ComplaintResponce()
+                {
+                    ResponderName = "marbas83",
+                    Content = "Dziękujemy za zgłoszenie, przyjrzymy się sprawie.",
+                    ResponceDate = DateTime.Now.AddMinutes(i)
+                }).ToList(),
             Description = "Używanie botów w symulatorze",
 
         }, "gagarZBipom", "761");

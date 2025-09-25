@@ -28,6 +28,7 @@ try
     builder.Services.AddScoped<IComplaintsViewModel, ComplaintsViewModel>();
     builder.Services.AddScoped<IRichTextEditorViewModel, RichTextEditorViewModel>();
     builder.Services.AddScoped<IDialogNewComplaintViewModel, DialogNewComplaintViewModel>();
+    builder.Services.AddScoped<IComplaintDetailsViewModel, ComplaintDetailsViewModel>();
 
     builder.Services.AddSingleton<IComplaintsList, ComplaintsList>();
 
