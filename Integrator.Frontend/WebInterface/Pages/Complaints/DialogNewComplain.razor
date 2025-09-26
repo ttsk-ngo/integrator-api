@@ -49,7 +49,7 @@
                                    Color="@ViewModel.GetButtonColor(context)"
                                    Size="Size.Small"
                                    Class="px-4 flex-grow-1"
-                                   OnClick="@(() => ViewModel.SelectedUserRole = context)">
+                                   OnClick="@(() => HandleRoleSelection(context))">
                             @context.GetDisplayName()
                         </MudButton>
                     }
@@ -157,7 +157,7 @@
         {
             return;
         }
-        
+
         ViewModel.ComplainData.Description = description;
         MudDialog.Close(DialogResult.Ok(ViewModel.GetComplainData()));
         ViewModel.Reset();
@@ -176,7 +176,16 @@
             string.IsNullOrWhiteSpace(ViewModel.SelectedRule))
         {
             // Use correct MudBlazor Snackbar syntax
-            ViewModel.Snackbar.Add("Please select a violated rule for accused user", Severity.Warning);
+            ViewModel.Snackbar.Add("Please select a violated rule for accused user", Severity.Error);
+            return;
+        }
+
+        var alreadyAdded = ViewModel.ComplainData.InvolvedUsers
+            .Any(u => u.Nickname.Equals(ViewModel.SelectedNickname)
+              && u.Role != ViewModel.SelectedUserRole);
+        if (alreadyAdded)
+        {
+            ViewModel.Snackbar.Add("This user has already been added with a different role.", Severity.Error);
             return;
         }
 
@@ -206,5 +215,10 @@
             u.Nickname == ViewModel.SelectedNickname &&
             u.Context == ViewModel.SelectedContext &&
             u.ViolatedRules.Contains(rule));
+    }
+
+    private void HandleRoleSelection(InvolvedUser.InvolvedUserRole context)
+    {
+        ViewModel.SelectedUserRole = context;
     }
 }

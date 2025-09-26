@@ -20,6 +20,7 @@ public interface IComplaint
     bool IsAccusedSet();
     string ContextToString();
     ICollection<ComplaintResponce> Responses { get; set; }
+    Task AddResponce(string username, string context);
 }
 
 
@@ -55,6 +56,7 @@ public class Complaint : BaseModel, IComplaint
     public ComplaintStatus Status { get; set; }
     public ICollection<ComplaintContext> Context { get; set; } = new List<ComplaintContext>();
     public ICollection<InvolvedUser> InvolvedUsers { get; private set; } = new List<InvolvedUser>();
+    private object _lock = new object();
 
 
     public string Accuser()
@@ -98,4 +100,17 @@ public class Complaint : BaseModel, IComplaint
     }
 
     public ICollection<ComplaintResponce> Responses { get; set; } = new List<ComplaintResponce>();
+
+    public async Task AddResponce(string username, string context)
+    {
+        lock (_lock)
+        {
+            Responses.Add(new ComplaintResponce()
+            {
+                ResponderName = username,
+                Content = context,
+                ResponceDate = DateTime.Now
+            });
+        }
+    }
 }

@@ -73,7 +73,7 @@
         <MudStack Spacing="3" Class="py-2" Style="max-height: calc(100vh - 140px); overflow-y: auto;">
 
             @* Description *@
-            <MudPaper Elevation="0" Class="pa-4" Style="background-color: #f8f8f8">
+            <MudPaper Elevation="0" Class="pa-4" Style="@($"background-color:{GetColorResponseOdd()};")">
                 <MudText Typo="Typo.subtitle1" Style="font-weight: 600; margin-bottom: 5px;">
                     @ViewModel.Complaint.Accuser()
                 </MudText>
@@ -89,9 +89,9 @@
             @{
                 int i = 0;
             }
-            @foreach (var response in ViewModel.Complaint.Responses)
+            @foreach (var response in ViewModel.Complaint.Responses.ToList())
             {
-                var backgroundColor = i % 2 == 0 ? "#e8e8e8;" : "#f8f8f8;";
+                var backgroundColor = i % 2 == 0 ? GetColorResponseEven() : GetColorResponseOdd();
                 <MudPaper Elevation="0" Class="pa-4 mt-2" Style="@($"background-color: {backgroundColor};")">
                     <MudText Typo="Typo.subtitle1" Style="font-weight: 600; margin-bottom: 5px;">
                         @response.ResponderName
@@ -111,6 +111,9 @@
 
 
 @code {
+    [CascadingParameter(Name = "IsDarkMode")]
+    public bool IsDarkMode { get; set; }
+
     [Parameter] public string Number { get; set; }
 
     [Inject] NavigationManager NavigationManager { get; set; }
@@ -137,8 +140,27 @@
         };
     }
 
+    private string GetColorResponseEven()
+    {
+        return IsDarkMode switch
+        {
+            false => Colors.Gray.Lighten4,
+            true => Colors.Gray.Darken2
+        };
+    }
+
+    private string GetColorResponseOdd()
+    {
+        return IsDarkMode switch
+        {
+            false => Colors.Gray.Lighten2,
+            true => Colors.Gray.Darken3
+        };
+    }
+
     private void HandleNewResponse()
     {
-        Console.WriteLine("Add new response clicked");
+        ViewModel.AddNewResponse(EditorViewModel.EditorContent);
+        EditorViewModel.EditorContent = String.Empty;
     }
 }
