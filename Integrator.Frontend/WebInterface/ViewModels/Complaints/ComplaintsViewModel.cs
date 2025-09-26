@@ -21,7 +21,4 @@ public class ComplaintsViewModel : ViewModelBase, IComplaintsViewModel
     {
         Complaints.AddNewComplaint(complaint, username, userId);
     }
-
-    //ogarnąć te kolory przycisków
-    //spytać gemini / chata o ten singleton czy da się inaczej zrobić tą listę skarg
 }
