@@ -5,7 +5,6 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints;
 public interface IComplaintsViewModel
 {
     IComplaintsList Complaints { get; }
-    void AddNewComplaint(IComplaint complaint, string username, string userId = "0");
 }
 
 public class ComplaintsViewModel : ViewModelBase, IComplaintsViewModel
@@ -16,9 +15,4 @@ public class ComplaintsViewModel : ViewModelBase, IComplaintsViewModel
     }
 
     public IComplaintsList Complaints { get; private set; }
-
-    public void AddNewComplaint(IComplaint complaint, string username, string userId = "0")
-    {
-        Complaints.AddNewComplaint(complaint, username, userId);
-    }
 }

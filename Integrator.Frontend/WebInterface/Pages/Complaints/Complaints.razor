@@ -1,13 +1,18 @@
 ﻿@page "/complaints"
+@attribute [Authorize]
+
 @using System.ComponentModel
 @using Integrator.DataAccess.Models.Complaints
 @using Integrator.Frontend.WebInterface.ViewModels.Complaints
 @using Integrator.Frontend.WebInterface.Pages.Complaints
+@using Integrator.Frontend.WebInterface.ViewModels.Editor
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 @implements IDisposable
 
 @inject IComplaintsViewModel ViewModel
+@inject IRichTextEditorViewModel EditorViewModel
 @inject AuthenticationStateProvider AuthProvider
 
 <PageTitle>Complaints</PageTitle>
@@ -92,8 +97,13 @@
     private async Task OpenDialogAsync()
     {
         var authState = await AuthProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        var username = user.Identity?.Name ?? "Guest";
+        var user = authState?.User;
+
+        if (user == null || user.Identity?.IsAuthenticated != true)
+        {
+            return;
+        }
+        var username = user.Identity.Name;
         var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0";
 
         var parameters = new DialogParameters
@@ -101,6 +111,7 @@
             { "AccuserNickname", username }
         };
 
+        EditorViewModel.EditorContent = String.Empty;
         var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
         var dialogRef = await DialogService.ShowAsync<DialogNewComplain>("Create a new complain", parameters, options);
         var result = await dialogRef.Result;
@@ -110,13 +121,14 @@
             var complainData = result.Data;
             if (complainData is IComplaint)
             {
-                ViewModel.AddNewComplaint((IComplaint)complainData, username, userId);
+                ViewModel.Complaints.AddNewComplaint((IComplaint)complainData, username, userId);
             }
         }
     }
 
     private void OnRowClicked(DataGridRowClickEventArgs<IComplaint> args)
     {
+        EditorViewModel.EditorContent = String.Empty;
         var complaint = args.Item;
         var safeNumber = complaint.Number.Replace("/", "-");
         NavigationManager.NavigateTo($"/complaints/{safeNumber}");

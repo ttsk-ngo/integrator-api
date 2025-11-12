@@ -32,6 +32,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="HtmlSanitizer" Version="9.0.886" />
       <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.13" />
       <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.13" />
       <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.13" />
@@ -50,6 +51,7 @@
       <PackageReference Include="Serilog.Enrichers.ClientInfo" Version="2.1.2" />
       <PackageReference Include="Serilog.Enrichers.CorrelationId" Version="3.0.1" />
       <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+      <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
     </ItemGroup>
 
     <ItemGroup>

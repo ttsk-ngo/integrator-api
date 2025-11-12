@@ -5,7 +5,7 @@ namespace Integrator.DataAccess.Models.Complaints;
 public interface IComplaintsList
 {
     List<IComplaint> AllComplaintsList { get; }
-    void AddNewComplaint(IComplaint complaint, string username, string userId = "0");
+    void AddNewComplaint(IComplaint complaint, string username, string userId);
     event Action<IComplaint>? ComplaintAdded;
 }
 
@@ -19,7 +19,7 @@ public class ComplaintsList : IComplaintsList
     {
         AllComplaintsList = new List<IComplaint>();
         _lock = new object();
-        LoadComplaintsAsync();
+        _ = LoadComplaintsAsync();
     }
 
     public void AddNewComplaint(IComplaint complaint, string username, string userId = "0")
@@ -36,13 +36,15 @@ public class ComplaintsList : IComplaintsList
             var contexts = complaint.InvolvedUsers
                 .Where(u => u.Role == InvolvedUser.InvolvedUserRole.Accused || u.Role == InvolvedUser.InvolvedUserRole.Witness)
                 .Select(u => u.Context)
+                .Where(c => c.HasValue)
+                .Select(c => c.Value)
                 .Distinct()
                 .OrderBy(c => c.GetDisplayName())
                 .ToList();
 
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             complaint.CreatedAt = now;
-            complaint.UpdatedAt = now;
+            complaint.ChangeUpdateTimeToNow();
             complaint.Status = Complaint.ComplaintStatus.Open;
             complaint.InvolvedUsers.Add(accuser);
             complaint.Context = contexts;
@@ -106,20 +108,32 @@ public class ComplaintsList : IComplaintsList
                 }
             },
             Responses = Enumerable.Range(0, 20)
-                .Select(i => new ComplaintResponce()
+                .Select(i => new ComplaintResponse()
                 {
                     ResponderName = "marbas83",
                     Content = "Dziękujemy za zgłoszenie, przyjrzymy się sprawie.",
-                    ResponceDate = DateTime.Now.AddMinutes(i)
-                }).ToList(),
-            Description = "Używanie botów w symulatorze",
+                    ResponseDate = DateTime.UtcNow.AddMinutes(i),
+                    ContentUpdated = "Dziękujemy za zgłoszenie, przyjrzymy się sprawie.",
+                    ResponseDateUpdated = DateTime.UtcNow.AddMinutes(i)
+                })
+                .Cast<IComplaintResponse>()
+                .ToList(),
+
+            Description = new ComplaintResponse()
+            {
+                ResponderName = "gagarZBipom",
+                Content = "Używanie botów w symulatorze",
+                ResponseDate = DateTime.UtcNow,
+                ContentUpdated = "Używanie botów w symulatorze",
+                ResponseDateUpdated = DateTime.UtcNow
+            }
 
         }, "gagarZBipom", "761");
     }
 
     private void SetIdForNewComplaint(IComplaint complaint)
     {
-        int year = DateTime.Now.Year;
+        int year = DateTime.UtcNow.Year;
 
         var currentYearComplaints = AllComplaintsList
             .Where(c => c.Number != null && c.Number.EndsWith($"/{year}"));

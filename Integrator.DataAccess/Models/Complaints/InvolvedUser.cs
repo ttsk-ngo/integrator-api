@@ -27,7 +27,7 @@ public class InvolvedUser : BaseModel
     public string Nickname { get; set; } = null!;
     public InvolvedUserRole Role { get; set; }
     public string? ViolatedRules { get; set; }
-    public ComplaintContext Context { get; set; }
+    public ComplaintContext? Context { get; set; }
 
     public string? ComplaintId { get; set; }
     public Complaint? Complaint { get; private set; }

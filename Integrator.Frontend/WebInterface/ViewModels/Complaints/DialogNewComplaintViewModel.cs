@@ -1,4 +1,6 @@
-﻿using Integrator.DataAccess.Models.Complaints;
+﻿using Ganss.Xss;
+using Integrator.DataAccess.Models.Complaints;
+using Integrator.Frontend.WebInterface.ViewModels.Editor;
 using MudBlazor;
 using System.Net;
 using System.Text.RegularExpressions;
@@ -8,36 +10,39 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
 {
     public interface IDialogNewComplaintViewModel
     {
-        ISnackbar Snackbar { get; }
         string? SelectedNickname { get; set; }
-        ComplaintContext? SelectedContext { get; set; }
-        InvolvedUser.InvolvedUserRole? SelectedUserRole { get; set; }
         string? SelectedRule { get; set; }
         string AccuserNickname { get; set; }
-        IComplaint ComplainData { get; }
         string[] Nicknames { get; }
+        ISnackbar Snackbar { get; }
+        IComplaint ComplainData { get; }
+        ComplaintContext? SelectedContext { get; set; }
+        InvolvedUser.InvolvedUserRole? SelectedUserRole { get; set; }
 
-        Task<IEnumerable<string>> SearchNicknames(string value, CancellationToken token);
+        void Submit(IRichTextEditorViewModel EditorViewModel);
+        void AddUserToComplain();
+        void RemoveUserFromComplain(InvolvedUser user);
+        void Reset();
         string GetSelectedClass(InvolvedUser.InvolvedUserRole option);
+        bool CheckDialogErrorBeforeSubmit(string? description);
+        IComplaint GetComplainData();
         Variant GetButtonVariant(InvolvedUser.InvolvedUserRole option);
         Color GetButtonColor(InvolvedUser.InvolvedUserRole option);
         List<string> GetRulesForContext(ComplaintContext? context);
-        void AddUserToComplain();
-        void RemoveUserFromComplain(InvolvedUser user);
-        IComplaint GetComplainData();
-        void Reset();
-        bool CheckDialogErrorBeforeSubmit(string? description);
+        Task<IEnumerable<string>> SearchNicknames(string value, CancellationToken token);
     }
 
     public class DialogNewComplaintViewModel : IDialogNewComplaintViewModel
     {
-        public ISnackbar Snackbar { get; }
+
         public string? SelectedNickname { get; set; }
-        public ComplaintContext? SelectedContext { get; set; }
-        public InvolvedUser.InvolvedUserRole? SelectedUserRole { get; set; }
         public string? SelectedRule { get; set; }
         public string AccuserNickname { get; set; }
+        public string[] Nicknames => nicknames;
+        public ISnackbar Snackbar { get; }
         public IComplaint ComplainData { get; private set; }
+        public ComplaintContext? SelectedContext { get; set; }
+        public InvolvedUser.InvolvedUserRole? SelectedUserRole { get; set; }
 
         private readonly Dictionary<ComplaintContext?, List<string>> _rulesForContexts = new()
             {
@@ -80,13 +85,10 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
                 }}
             };
 
-        // Data sources
-        private readonly string[] nicknames = {
+        private readonly string[] nicknames = [
                 "trichlor", "Mr_bar", "Drozda32", "_l0stfake7", "xoorbes", "Guest"
                 // ... other nicknames
-            };
-
-        public string[] Nicknames => nicknames;
+            ];
 
         public DialogNewComplaintViewModel(ISnackbar snackbar)
         {
@@ -94,26 +96,6 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
             ComplainData = new Complaint();
             SelectedUserRole = InvolvedUser.InvolvedUserRole.Accused;
             AccuserNickname = string.Empty;
-        }
-
-
-        // Search method for Autocomplete
-        public async Task<IEnumerable<string>> SearchNicknames(string value, CancellationToken token)
-        {
-            await Task.Delay(5, token);
-
-            if (string.IsNullOrEmpty(value))
-                return Array.Empty<string>();
-
-            // Filter nicknames, excluding those already in the table
-            var alreadyAddedNicknames = ComplainData.InvolvedUsers
-                .Where(u => u.Role != SelectedUserRole)
-                .Select(u => u.Nickname)
-                .ToHashSet();
-
-            return Nicknames
-                .Where(x => !alreadyAddedNicknames.Contains(x) && !x.Equals(AccuserNickname))
-                .Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
         }
 
         // Helper methods for button styling
@@ -151,6 +133,28 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
         // Method adding a user to the complaint
         public void AddUserToComplain()
         {
+            // Check if nickname is selected
+            if (string.IsNullOrWhiteSpace(SelectedNickname))
+                return;
+
+            // If the user is accused, a violated rule must be selected
+            if (SelectedUserRole == InvolvedUser.InvolvedUserRole.Accused &&
+                string.IsNullOrWhiteSpace(SelectedRule))
+            {
+                // Use correct MudBlazor Snackbar syntax
+                Snackbar.Add("Please select a violated rule for accused user", Severity.Error);
+                return;
+            }
+
+            var alreadyAdded = ComplainData.InvolvedUsers
+                .Any(u => u.Nickname.Equals(SelectedNickname)
+                  && u.Role != SelectedUserRole);
+            if (alreadyAdded)
+            {
+                Snackbar.Add("This user has already been added with a different role.", Severity.Error);
+                return;
+            }
+
             if (string.IsNullOrWhiteSpace(SelectedNickname) ||
                 SelectedContext == null)
                 return;
@@ -211,6 +215,43 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
             }
 
             return true;
+        }
+
+        public void Submit(IRichTextEditorViewModel EditorViewModel)
+        {
+            var sanitizer = new HtmlSanitizer();
+            var cleanHtml = sanitizer.Sanitize(EditorViewModel.EditorContent);
+
+            if (!CheckDialogErrorBeforeSubmit(cleanHtml))
+            {
+                return;
+            }
+
+            ComplainData.Description.Content = cleanHtml;
+            ComplainData.Description.ContentUpdated = cleanHtml;
+            ComplainData.Description.ResponseDate = DateTime.UtcNow;
+            ComplainData.Description.ResponseDateUpdated = DateTime.UtcNow;
+
+            EditorViewModel.EditorContent = String.Empty;
+        }
+
+        // Search method for Autocomplete
+        public async Task<IEnumerable<string>> SearchNicknames(string value, CancellationToken token)
+        {
+            await Task.Delay(5, token);
+
+            if (string.IsNullOrEmpty(value))
+                return Array.Empty<string>();
+
+            // Filter nicknames, excluding those already in the table
+            var alreadyAddedNicknames = ComplainData.InvolvedUsers
+                .Where(u => u.Role != SelectedUserRole)
+                .Select(u => u.Nickname)
+                .ToHashSet();
+
+            return Nicknames
+                .Where(x => !alreadyAddedNicknames.Contains(x) && !x.Equals(AccuserNickname))
+                .Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
         }
     }
 }

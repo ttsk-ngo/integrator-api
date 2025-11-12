@@ -26,7 +26,7 @@ public class RepositoryTests
         
         var data = new List<Complaint>()
         {
-            new() {Id = "1", Description = "a", Number = "b" }, new() {Id = "2", Description = "c", Number = "d" }
+            new() {Id = "1", Description = new ComplaintResponse(){ Content = "a" }, Number = "b" }, new() {Id = "2", Description = new ComplaintResponse(){ Content = "c" }, Number = "d" }
         };
 
         await context.Complaints.AddRangeAsync(data);
@@ -49,7 +49,7 @@ public class RepositoryTests
         
         var data = new List<Complaint>()
         {
-            new() {Id = "1", Description = "a", Number = "b" }, new() {Id = "2", Description = "c", Number = "d" }
+            new() {Id = "1", Description = new ComplaintResponse(){ Content = "a" }, Number = "b" }, new() {Id = "2", Description = new ComplaintResponse(){ Content = "c" }, Number = "d" }
         };
 
         await context.Complaints.AddRangeAsync(data);
@@ -89,7 +89,7 @@ public class RepositoryTests
         var data = new Complaint()
         {
             Id = "1",
-            Description = "a",
+            Description = new ComplaintResponse() { Content = "a" },
             Number = "b",
         };
         
@@ -111,7 +111,7 @@ public class RepositoryTests
         var data = new Complaint()
         {
             Id = "1",
-            Description = "a",
+            Description = new ComplaintResponse() { Content = "a" },
             Number = "b"
         };
 

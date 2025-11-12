@@ -1,4 +1,5 @@
 ﻿using Integrator.Shared.Helpers.Enums;
+using Nextended.Core.Extensions;
 using System.ComponentModel.DataAnnotations;
 using static Integrator.DataAccess.Models.Complaints.Complaint;
 
@@ -6,11 +7,11 @@ namespace Integrator.DataAccess.Models.Complaints;
 
 public interface IComplaint
 {
-    public string Id { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
+    string Id { get; set; }
+    DateTime CreatedAt { get; set; } //UTC
+    DateTime UpdatedAt { get; } //UTC
     string Number { get; set; }
-    string Description { get; set; }
+    IComplaintResponse Description { get; set; }
     ComplaintStatus Status { get; set; }
     ICollection<ComplaintContext> Context { get; set; }
     ICollection<InvolvedUser> InvolvedUsers { get; }
@@ -19,8 +20,11 @@ public interface IComplaint
     string Witnesses();
     bool IsAccusedSet();
     string ContextToString();
-    ICollection<ComplaintResponce> Responses { get; set; }
+    ICollection<IComplaintResponse> Responses { get; set; }
     Task AddResponce(string username, string context);
+    Task ChangeComplaintStatus(ComplaintStatus newStatus);
+    Task AssignModerator(string username);
+    Task ChangeUpdateTimeToNow();
 }
 
 
@@ -50,14 +54,16 @@ public class Complaint : BaseModel, IComplaint
         [Display(Name = "Other")]
         Other = 4
     }
-
+    public string Id { get; set; }
+    public DateTime CreatedAt { get; set; } //UTC
+    public DateTime UpdatedAt { get; private set; } //UTC
     public string Number { get; set; } = null!;
-    public string Description { get; set; } = null!;
+    public IComplaintResponse Description { get; set; } = new ComplaintResponse();
     public ComplaintStatus Status { get; set; }
     public ICollection<ComplaintContext> Context { get; set; } = new List<ComplaintContext>();
     public ICollection<InvolvedUser> InvolvedUsers { get; private set; } = new List<InvolvedUser>();
-    private object _lock = new object();
-
+    public ICollection<IComplaintResponse> Responses { get; set; } = new List<IComplaintResponse>();
+    private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
 
     public string Accuser()
     {
@@ -99,18 +105,75 @@ public class Complaint : BaseModel, IComplaint
         return string.Join("; ", Context.Select(c => c.GetDisplayName()));
     }
 
-    public ICollection<ComplaintResponce> Responses { get; set; } = new List<ComplaintResponce>();
-
     public async Task AddResponce(string username, string context)
     {
-        lock (_lock)
+        await _lock.WaitAsync();
+        try
         {
-            Responses.Add(new ComplaintResponce()
+            Responses.Add(new ComplaintResponse()
             {
                 ResponderName = username,
                 Content = context,
-                ResponceDate = DateTime.Now
+                ResponseDate = DateTime.UtcNow,
+                ContentUpdated = context,
+                ResponseDateUpdated = DateTime.UtcNow
             });
+            UpdatedAt = DateTime.UtcNow;
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    public async Task ChangeComplaintStatus(ComplaintStatus newStatus)
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            Status = newStatus;
+            UpdatedAt = DateTime.UtcNow;
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    public async Task AssignModerator(string username)
+    {
+        if(Status != ComplaintStatus.Open)
+        {
+            return;
+        }
+
+        await _lock.WaitAsync();
+        try
+        {
+            InvolvedUsers.RemoveAll(u => u.Role == InvolvedUser.InvolvedUserRole.AssignedModerator);
+            InvolvedUsers.Add(new InvolvedUser()
+            {
+                Nickname = username,
+                Role = InvolvedUser.InvolvedUserRole.AssignedModerator,
+            });
+            UpdatedAt = DateTime.UtcNow;
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    public async Task ChangeUpdateTimeToNow()
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            UpdatedAt = DateTime.UtcNow;
+        }
+        finally
+        {
+            _lock.Release();
         }
     }
 }

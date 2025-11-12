@@ -3,8 +3,11 @@
 @using Integrator.Frontend.WebInterface.ViewModels.Editor
 @using Integrator.Frontend.WebInterface.Components
 @using Integrator.Shared.Helpers.Enums
+@using Ganss.Xss
 
 @rendermode InteractiveServer
+
+@implements IDisposable
 
 @inject IDialogNewComplaintViewModel ViewModel
 @inject IRichTextEditorViewModel EditorViewModel
@@ -143,6 +146,11 @@
     [Parameter]
     public string AccuserNickname { get; set; }
 
+    public void Dispose()
+    {
+        EditorViewModel.EditorContent = String.Empty;
+    }
+
     protected override void OnInitialized()
     {
         ViewModel.AccuserNickname = AccuserNickname;
@@ -151,14 +159,7 @@
 
     private void Submit() 
     {
-        string description = EditorViewModel.EditorContent;
-
-        if (!ViewModel.CheckDialogErrorBeforeSubmit(description))
-        {
-            return;
-        }
-
-        ViewModel.ComplainData.Description = description;
+        ViewModel.Submit(EditorViewModel);
         MudDialog.Close(DialogResult.Ok(ViewModel.GetComplainData()));
         ViewModel.Reset();
     }
@@ -167,29 +168,6 @@
 
     private void AddUser()
     {
-        // Check if nickname is selected
-        if (string.IsNullOrWhiteSpace(ViewModel.SelectedNickname))
-            return;
-
-        // If the user is accused, a violated rule must be selected
-        if (ViewModel.SelectedUserRole == InvolvedUser.InvolvedUserRole.Accused &&
-            string.IsNullOrWhiteSpace(ViewModel.SelectedRule))
-        {
-            // Use correct MudBlazor Snackbar syntax
-            ViewModel.Snackbar.Add("Please select a violated rule for accused user", Severity.Error);
-            return;
-        }
-
-        var alreadyAdded = ViewModel.ComplainData.InvolvedUsers
-            .Any(u => u.Nickname.Equals(ViewModel.SelectedNickname)
-              && u.Role != ViewModel.SelectedUserRole);
-        if (alreadyAdded)
-        {
-            ViewModel.Snackbar.Add("This user has already been added with a different role.", Severity.Error);
-            return;
-        }
-
-        // If all conditions are met, add the user
         ViewModel.AddUserToComplain();
     }
 

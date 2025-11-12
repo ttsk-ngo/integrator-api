@@ -1,8 +1,10 @@
 using Integrator.DataAccess.Models.Complaints;
+using Integrator.DataAccess.Models.Users;
 using Integrator.Frontend.HostingExtensions;
 using Integrator.Frontend.WebInterface;
 using Integrator.Frontend.WebInterface.ViewModels.Complaints;
 using Integrator.Frontend.WebInterface.ViewModels.Editor;
+using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor.Extensions;
 using Serilog;
 
@@ -29,11 +31,22 @@ try
     builder.Services.AddScoped<IRichTextEditorViewModel, RichTextEditorViewModel>();
     builder.Services.AddScoped<IDialogNewComplaintViewModel, DialogNewComplaintViewModel>();
     builder.Services.AddScoped<IComplaintDetailsViewModel, ComplaintDetailsViewModel>();
+    builder.Services.AddScoped<IDialogEditResponseViewModel, DialogEditResponseViewModel>();
 
+    //TODO: Potential data leakage between users, to be remake later with repository pattern ~l0stfake7
     builder.Services.AddSingleton<IComplaintsList, ComplaintsList>();
 
+#if DEBUG
+    string[] testRoles = { "Moderator", "Head of Moderators" };
+
+    builder.Services.AddScoped<AuthenticationStateProvider, TestAuthStateProvider>(serviceProvider =>
+    {
+        return new TestAuthStateProvider(testRoles, "marbas83");
+    });
+#else
     builder.Services.AddCascadingAuthenticationState();
-    
+#endif
+
     // Add services to the container.
     builder.Services.AddRazorComponents()
         .AddInteractiveServerComponents();

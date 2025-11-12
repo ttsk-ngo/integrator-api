@@ -1,0 +1,82 @@
+﻿@using Integrator.DataAccess.Models.Complaints
+@using Integrator.Frontend.WebInterface.ViewModels.Complaints
+@using Integrator.Frontend.WebInterface.ViewModels.Editor
+@using Integrator.Frontend.WebInterface.Components
+@using Integrator.Shared.Helpers.Enums
+
+@rendermode InteractiveServer
+
+@implements IDisposable
+
+@inject IDialogEditResponseViewModel ViewModel
+@inject IRichTextEditorViewModel EditorViewModel
+
+<MudDialog>
+    <TitleContent>
+        Edit Complaint Response
+    </TitleContent>
+    <DialogContent>
+        <MudGrid Spacing="2">
+            <MudItem xs="12">
+                <MudText>
+                    Original Response:
+                    @((MarkupString)ViewModel.Response.Content)
+                </MudText>
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudDivider />
+            </MudItem>
+
+            <MudItem xs="12">
+                <RichTextEditorComponent ViewModel="EditorViewModel"
+                                         Height="400px"
+                                         Class="m-2"
+                                         Placeholder="Describe the situation..." />
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <div class="mx-4 mb-3 d-flex">
+            <MudButton OnClick="Cancel" Variant="Variant.Filled" Class="mr-2">Cancel</MudButton>
+            <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Confirm edit</MudButton>
+        </div>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public IComplaintResponse Response { get; set; }
+    [Parameter]
+    public IComplaint Complaint { get; set; }
+
+
+    public void Dispose()
+    {
+        EditorViewModel.EditorContent = String.Empty;
+    }
+
+    protected override void OnInitialized()
+    {
+        ViewModel.Response = Response;
+        ViewModel.Complaint = Complaint;
+        EditorViewModel.EditorContent = Response.ContentUpdated;
+        base.OnInitialized();
+    }
+
+    private async Task Submit() 
+    {
+        bool submitResult = await ViewModel.Submit(EditorViewModel);
+        if (submitResult)
+            MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel()
+    {
+        EditorViewModel.EditorContent = String.Empty;
+        MudDialog.Cancel();
+    }
+}
