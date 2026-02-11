@@ -21,7 +21,7 @@ public interface IComplaint
     bool IsAccusedSet();
     string ContextToString();
     ICollection<IComplaintResponse> Responses { get; set; }
-    Task AddResponce(string username, string context);
+    Task AddResponce(string username, string context, string uid);
     Task ChangeComplaintStatus(ComplaintStatus newStatus);
     Task AssignModerator(string username);
     Task ChangeUpdateTimeToNow();
@@ -116,7 +116,7 @@ public class Complaint : BaseModel, IComplaint
         return string.Join("; ", Context.Select(c => c.GetDisplayName()));
     }
 
-    public async Task AddResponce(string username, string context)
+    public async Task AddResponce(string username, string context, string uid)
     {
         await _lock.WaitAsync();
         try
@@ -127,7 +127,8 @@ public class Complaint : BaseModel, IComplaint
                 Content = context,
                 ResponseDate = DateTime.UtcNow,
                 ContentUpdated = context,
-                ResponseDateUpdated = DateTime.UtcNow
+                ResponseDateUpdated = DateTime.UtcNow,
+                UserId = uid
             });
             UpdatedAt = DateTime.UtcNow;
         }

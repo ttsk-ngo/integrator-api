@@ -2,6 +2,7 @@
 
 public interface IComplaintResponse
 {
+    public string UserId { get; set; }
     string ResponderName { get; set; }
     string Content { get; set; }
     DateTime ResponseDate { get; set; }
@@ -12,6 +13,7 @@ public interface IComplaintResponse
 
 public class ComplaintResponse : IComplaintResponse
 {
+    public string UserId { get; set; }
     public string ResponderName { get; set; }
     public string Content { get; set; }
     public DateTime ResponseDate { get; set; }

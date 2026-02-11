@@ -13,9 +13,11 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using static Integrator.DataAccess.Models.Complaints.Complaint
 @using Ganss.Xss
+@using System.Security.Claims
 
 @inject IComplaintDetailsViewModel ViewModel
 @inject IRichTextEditorViewModel EditorViewModel
+@inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>Complaint</PageTitle>
 
@@ -130,18 +132,14 @@
 
             @* Description *@
             <MudPaper Elevation="0" Class="pa-4 mt-2" Style="@($"background-color:{GetColorResponseOdd()}; position: relative;")">
-                @if (ViewModel.Complaint.Status == Complaint.ComplaintStatus.Open)
-                            {
-                    <AuthorizeView Roles="@($"{Roles.Moderator.GetDisplayName()},{Roles.HeadOfModerators.GetDisplayName()}")">
-                        <Authorized>
-                            <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                       Size="Size.Small"
-                                       Color="Color.Info"
-                                       OnClick="@(() => OpenEditDialog(ViewModel.Complaint.Description))"
-                                       Class="float-right"
-                                       Style="position: absolute; top: 10px; right: 10px;" />
-                        </Authorized>
-                    </AuthorizeView>
+                @if (ViewModel.Complaint.Status == Complaint.ComplaintStatus.Open && CanEditResponse(ViewModel.Complaint.Description))
+                {
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                   Size="Size.Small"
+                                   Color="Color.Info"
+                                   Class="float-right"
+                                   Style="position: absolute; top: 10px; right: 10px;"
+                                   OnClick="@(() => OpenEditDialog(ViewModel.Complaint.Description))" />
                 }
                 <MudText Typo="Typo.subtitle1" Style="font-weight: 600; margin-bottom: 5px;">
                     @ViewModel.Complaint.Accuser()
@@ -163,18 +161,14 @@
             {
                 var backgroundColor = i % 2 == 0 ? GetColorResponseEven() : GetColorResponseOdd();
                 <MudPaper Elevation="0" Class="pa-4 mt-2" Style="@($"background-color: {backgroundColor}; position: relative;")">
-                    @if (ViewModel.Complaint.Status == Complaint.ComplaintStatus.Open)
+                    @if (ViewModel.Complaint.Status == Complaint.ComplaintStatus.Open && CanEditResponse(response))
                     {
-                        <AuthorizeView Roles="@($"{Roles.Moderator.GetDisplayName()},{Roles.HeadOfModerators.GetDisplayName()}")">
-                            <Authorized>
-                                <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                    Size="Size.Small"
-                                    Color="Color.Info"
-                                    OnClick="@(() => OpenEditDialog(response))"
-                                    Class="float-right"
-                                    Style="position: absolute; top: 10px; right: 10px;" />
-                            </Authorized>
-                        </AuthorizeView>
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                       Size="Size.Small"
+                                       Color="Color.Info"
+                                       Class="float-right"
+                                       Style="position: absolute; top: 10px; right: 10px;"
+                                       OnClick="@(() => OpenEditDialog(response))" />
                     }
                     <MudText Typo="Typo.subtitle1" Style="font-weight: 600; margin-bottom: 5px;">
                         @response.ResponderName
@@ -183,7 +177,7 @@
                         @((MarkupString)response.ContentUpdated)
                     </MudText>
                     <MudText Typo="Typo.caption" Color="Color.Secondary">
-                        @($"Created: {response.ResponseDate.ToString("yyyy-MM-dd HH:mm")} | Last update: {response.ResponseDateUpdated.ToString("yyyy-MM-dd HH:mm")}")
+                        @($"Created: {response.ResponseDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm")} | Last update: {response.ResponseDateUpdated.ToLocalTime().ToString("yyyy-MM-dd HH:mm")}")
                     </MudText>
                 </MudPaper>
                 i++;
@@ -196,6 +190,8 @@
 @code {
     [CascadingParameter(Name = "IsDarkMode")]
     public bool IsDarkMode { get; set; }
+    private ClaimsPrincipal? _user;
+    private string _currentUserId = string.Empty;
 
     [Parameter] public string Number { get; set; }
 
@@ -210,6 +206,10 @@
         {
             NavigationManager.NavigateTo($"/errors/404");
         }
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        _user = authState?.User;
+        _currentUserId = _user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
 
         await base.OnInitializedAsync();
     }
@@ -294,7 +294,7 @@
 
     private async Task OpenEditDialog(IComplaintResponse response)
     {
-        bool checkResult = await ViewModel.CheckPermissionForOpenDialog();
+        bool checkResult = CanEditResponse(response);
         if (!checkResult)
         {
             return;
@@ -313,5 +313,21 @@
         var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
         var dialogRef = await DialogService.ShowAsync<DialogEditResponse>("Edit response", parameters, options);
         var result = await dialogRef.Result;
+    }
+
+    private bool CanEditResponse(IComplaintResponse response)
+    {
+        if (_user == null) return false;
+
+        bool isModerator = _user.IsInRole(Roles.Moderator.GetDisplayName()) ||
+                           _user.IsInRole(Roles.HeadOfModerators.GetDisplayName());
+
+        if (isModerator) return true;
+
+        bool isAuthor = response.UserId == _currentUserId;
+        bool isRecent = (DateTime.UtcNow - response.ResponseDate).TotalMinutes <= 15;
+        bool isLastMessage = response.Equals(ViewModel.Complaint.Responses.LastOrDefault());
+
+        return isAuthor && isRecent && isLastMessage;
     }
 }

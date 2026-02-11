@@ -1,9 +1,11 @@
 ﻿using Integrator.DataAccess.Models.Complaints;
+using Integrator.DataAccess.Models.Editor;
 using Integrator.DataAccess.Models.Users;
 using Integrator.Shared.Helpers.Enums;
 using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
 using System.Net;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
 using static Integrator.DataAccess.Models.Complaints.Complaint;
 
@@ -21,7 +23,6 @@ public interface IComplaintDetailsViewModel
     Task<bool> CloseOrOpenComplaint();
     Task AssignModerator();
     Task<bool> IsUserInRole(Roles role);
-    Task<bool> CheckPermissionForOpenDialog();
     Task<IEnumerable<string>> SearchNicknames(string value, CancellationToken token);
     Task MakeDecision(DialogCloseComplaintViewModel closeComplaintViewModel);
 }
@@ -73,27 +74,29 @@ public class ComplaintDetailsViewModel : IComplaintDetailsViewModel
         }
 
         var username = user.Identity?.Name;
+        var uid = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
 
-        if (string.IsNullOrEmpty(username))
+        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(uid))
         {
             return;
         }
 
         var responsesList = Complaint.Responses.ToList();
         var lastResponse = responsesList
-            .Where(r => r.ResponderName == user.Identity.Name)
+            .Where(r => r.UserId == uid)
             .LastOrDefault();
 
         if (lastResponse != null)
         {
-            if (lastResponse.ResponseDate >= DateTime.UtcNow.AddMinutes(-15))
+            if ((lastResponse.ResponseDate >= DateTime.UtcNow.AddMinutes(-15) && !IsModerator())
+                || (Complaint.Description.ResponseDate >= DateTime.UtcNow.AddMinutes(-15) && Complaint.Description.UserId == uid))
             {
                 Snackbar.Add("You cannot send responses more often than every 15 minutes.", Severity.Error);
                 return;
             }
         }
 
-        var decoded = WebUtility.HtmlDecode(context);
+            var decoded = WebUtility.HtmlDecode(context);
         var text = Regex.Replace(decoded, "<.*?>", string.Empty);
 
         if (string.IsNullOrWhiteSpace(text))
@@ -101,12 +104,12 @@ public class ComplaintDetailsViewModel : IComplaintDetailsViewModel
             return;
         }
 
-        await Complaint.AddResponce(username, context);
+        await Complaint.AddResponce(username, context, uid);
     }
 
     public async Task<bool> CloseOrOpenComplaint()
     {
-        if (IsUserInRole(Roles.Moderator).Result || IsUserInRole(Roles.HeadOfModerators).Result)
+        if (IsModerator())
         {
             if (Complaint == null)
             {
@@ -114,6 +117,11 @@ public class ComplaintDetailsViewModel : IComplaintDetailsViewModel
             }
         }
         return true;
+    }
+
+    private bool IsModerator()
+    {
+        return IsUserInRole(Roles.Moderator).Result || IsUserInRole(Roles.HeadOfModerators).Result;
     }
 
     public async Task AssignModerator()
@@ -141,22 +149,6 @@ public class ComplaintDetailsViewModel : IComplaintDetailsViewModel
         }
 
         return user.IsInRole(role.GetDisplayName());
-    }
-
-    public async Task<bool> CheckPermissionForOpenDialog()
-    {
-        var authState = await AuthProvider.GetAuthenticationStateAsync();
-        var user = authState?.User;
-
-        if (user == null || user.Identity?.IsAuthenticated != true)
-        {
-            return false;
-        }
-        if (!(IsUserInRole(Roles.Moderator).Result || IsUserInRole(Roles.HeadOfModerators).Result))
-        {
-            return false;
-        }
-        return true;
     }
 
     public async Task<IEnumerable<string>> SearchNicknames(string value, CancellationToken token)

@@ -19,7 +19,7 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
         ComplaintContext? SelectedContext { get; set; }
         InvolvedUser.InvolvedUserRole? SelectedUserRole { get; set; }
 
-        void Submit(IRichTextEditorViewModel EditorViewModel);
+        bool Submit(IRichTextEditorViewModel EditorViewModel);
         void AddUserToComplain();
         void RemoveUserFromComplain(InvolvedUser user);
         void Reset();
@@ -86,7 +86,7 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
             };
 
         private readonly string[] nicknames = [
-                "trichlor", "Mr_bar", "Drozda32", "_l0stfake7", "xoorbes", "Guest"
+                "trichlor", "Mr_bar", "Drozda32", "_l0stfake7", "xoorbes", "bagi2424"
                 // ... other nicknames
             ];
 
@@ -217,14 +217,14 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
             return true;
         }
 
-        public void Submit(IRichTextEditorViewModel EditorViewModel)
+        public bool Submit(IRichTextEditorViewModel EditorViewModel)
         {
             var sanitizer = new HtmlSanitizer();
             var cleanHtml = sanitizer.Sanitize(EditorViewModel.EditorContent);
 
             if (!CheckDialogErrorBeforeSubmit(cleanHtml))
             {
-                return;
+                return false;
             }
 
             ComplainData.Description.Content = cleanHtml;
@@ -233,6 +233,8 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
             ComplainData.Description.ResponseDateUpdated = DateTime.UtcNow;
 
             EditorViewModel.EditorContent = String.Empty;
+
+            return true;
         }
 
         // Search method for Autocomplete

@@ -1,10 +1,12 @@
 ﻿using Ganss.Xss;
 using Integrator.DataAccess.Models.Complaints;
+using Integrator.DataAccess.Models.Users;
 using Integrator.Frontend.WebInterface.ViewModels.Editor;
+using Integrator.Shared.Helpers.Enums;
 using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
-using MudBlazor.Extensions.Components;
 using System.Net;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
 using static Integrator.DataAccess.Models.Complaints.Complaint;
 
@@ -25,11 +27,12 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
         public IComplaint Complaint { get; set; }
         public IComplaintResponse Response { get; set; }
         public ISnackbar Snackbar { get; }
-        private AuthenticationStateProvider AuthProvider { get; set; }
+        private AuthenticationStateProvider AuthProvider { get; }
 
-        public DialogEditResponseViewModel(AuthenticationStateProvider authProvider)
+        public DialogEditResponseViewModel(AuthenticationStateProvider authProvider, ISnackbar snackbar)
         {
             AuthProvider = authProvider;
+            Snackbar = snackbar;
         }
 
         public async Task<bool> CheckDialogErrorBeforeSubmit(string? newMessage)
@@ -37,12 +40,27 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
             var authState = await AuthProvider.GetAuthenticationStateAsync();
             var user = authState.User;
 
-            var requiredRoles = new[] { "Moderator", "Naczelnik moderatorow" };
-
-            if (user == null || user.Identity?.IsAuthenticated == false || !requiredRoles.Any(role => user.IsInRole(role)))
+            if (user == null || user.Identity?.IsAuthenticated == false)
             {
                 Snackbar.Add("Not enough permissions.", Severity.Error);
                 return false;
+            }
+
+            bool isModerator = user.IsInRole(Roles.Moderator.GetDisplayName()) ||
+                       user.IsInRole(Roles.HeadOfModerators.GetDisplayName());
+
+            if (!isModerator)
+            {
+                var currentUserId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                bool isAuthor = Response.UserId == currentUserId;
+                bool isRecent = (DateTime.UtcNow - Response.ResponseDate).TotalMinutes <= 15;
+                bool isLastMessage = Response.Equals(Complaint.Responses.LastOrDefault());
+
+                if (!isAuthor || !isRecent || !isLastMessage)
+                {
+                    Snackbar.Add("You do not have permission to edit this message (time has expired or there is a new reply).", Severity.Error);
+                    return false;
+                }
             }
 
             var decoded = WebUtility.HtmlDecode(newMessage);
@@ -56,6 +74,7 @@ namespace Integrator.Frontend.WebInterface.ViewModels.Complaints
 
             return true;
         }
+
         public async Task<bool> Submit(IRichTextEditorViewModel EditorViewModel)
         {
             if (Complaint.Status != ComplaintStatus.Open)

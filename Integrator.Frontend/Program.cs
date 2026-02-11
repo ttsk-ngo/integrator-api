@@ -4,6 +4,7 @@ using Integrator.Frontend.HostingExtensions;
 using Integrator.Frontend.WebInterface;
 using Integrator.Frontend.WebInterface.ViewModels.Complaints;
 using Integrator.Frontend.WebInterface.ViewModels.Editor;
+using Integrator.Shared.Helpers.Enums;
 using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor.Extensions;
 using Serilog;
@@ -38,12 +39,19 @@ try
     builder.Services.AddSingleton<IComplaintsList, ComplaintsList>();
 
 #if DEBUG
-    string[] testRoles = { "Moderator", "Head of Moderators" };
+    string[] testRoles = { Roles.User.GetDisplayName() };
+
+    builder.Services.AddScoped<AuthenticationStateProvider, TestAuthStateProvider>(serviceProvider =>
+    {
+        return new TestAuthStateProvider(testRoles, "Je¿yk");
+    });
+
+    /*string[] testRoles = { Roles.Moderator.GetDisplayName(), Roles.HeadOfModerators.GetDisplayName() };
 
     builder.Services.AddScoped<AuthenticationStateProvider, TestAuthStateProvider>(serviceProvider =>
     {
         return new TestAuthStateProvider(testRoles, "marbas83");
-    });
+    });*/
 #else
     builder.Services.AddCascadingAuthenticationState();
 #endif
