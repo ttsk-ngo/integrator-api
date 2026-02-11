@@ -18,11 +18,12 @@ public interface IComplaintDetailsViewModel
 
     void SetFields(string number);
     Task AddNewResponse(string context);
-    Task CloseOrOpenComplaint();
+    Task<bool> CloseOrOpenComplaint();
     Task AssignModerator();
     Task<bool> IsUserInRole(Roles role);
     Task<bool> CheckPermissionForOpenDialog();
     Task<IEnumerable<string>> SearchNicknames(string value, CancellationToken token);
+    Task MakeDecision(DialogCloseComplaintViewModel closeComplaintViewModel);
 }
 
 public class ComplaintDetailsViewModel : IComplaintDetailsViewModel
@@ -103,23 +104,16 @@ public class ComplaintDetailsViewModel : IComplaintDetailsViewModel
         await Complaint.AddResponce(username, context);
     }
 
-    public async Task CloseOrOpenComplaint()
+    public async Task<bool> CloseOrOpenComplaint()
     {
         if (IsUserInRole(Roles.Moderator).Result || IsUserInRole(Roles.HeadOfModerators).Result)
         {
             if (Complaint == null)
             {
-                return;
-            }
-            if (Complaint.Status == ComplaintStatus.Open)
-            {
-                await Complaint.ChangeComplaintStatus(ComplaintStatus.Closed);
-            }
-            else if (Complaint.Status == ComplaintStatus.Closed)
-            {
-                await Complaint.ChangeComplaintStatus(ComplaintStatus.Open);
+                return false;
             }
         }
+        return true;
     }
 
     public async Task AssignModerator()
@@ -179,5 +173,16 @@ public class ComplaintDetailsViewModel : IComplaintDetailsViewModel
         return nicknames
             .Where(x => !alreadyAddedNicknames.Contains(x))
             .Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    public async Task MakeDecision(DialogCloseComplaintViewModel closeComplaintViewModel)
+    {
+        await Complaint.ChangeComplaintStatus(closeComplaintViewModel.Decision);
+
+        if(closeComplaintViewModel.Decision == ComplaintStatus.Closed)
+        {
+            //logic for sending message to accused user, add note and ban accused player, if complaint is closed
+            //add in the future
+        }
     }
 }

@@ -62,7 +62,7 @@
             </MudTable>
 
             @* Add responce *@
-            @if(ViewModel.Complaint.Status == ComplaintStatus.Open)
+            @if (ViewModel.Complaint.Status == Complaint.ComplaintStatus.Open)
             {
             <MudStack Spacing="1" Class="mt-5">
                 <RichTextEditorComponent ViewModel="EditorViewModel"
@@ -82,18 +82,18 @@
                     </MudItem>
 
                     <MudStack Spacing="1" Class="mt-3">
-                        <MudButton Icon="@(ViewModel.Complaint.Status == ComplaintStatus.Open? Icons.Material.Filled.Lock : Icons.Material.Filled.LockOpen)"
+                        <MudButton Icon="@(ViewModel.Complaint.Status == Complaint.ComplaintStatus.Open ? Icons.Material.Filled.Lock : Icons.Material.Filled.LockOpen)"
                                    Color="Color.Warning"
                                    Variant="Variant.Filled"
                                    OnClick="ToggleComplaintStatus"
                                    FullWidth="true" 
                                    Style="font-weight: 600; text-transform: none;">
-                            @(ViewModel.Complaint.Status == ComplaintStatus.Open ? "Close this complaint" : "Open this complaint")
+                            @(ViewModel.Complaint.Status == Complaint.ComplaintStatus.Open ? "Resolve this complaint" : "Open this complaint")
                         </MudButton>
                     </MudStack>
                 </Authorized>
             </AuthorizeView>
-            @if (ViewModel.Complaint.Status == ComplaintStatus.Open)
+            @if (ViewModel.Complaint.Status == Complaint.ComplaintStatus.Open)
             {
                 <AuthorizeView Roles="@($"{Roles.HeadOfModerators.GetDisplayName()}")">
                     <Authorized>
@@ -130,7 +130,7 @@
 
             @* Description *@
             <MudPaper Elevation="0" Class="pa-4 mt-2" Style="@($"background-color:{GetColorResponseOdd()}; position: relative;")">
-                @if (ViewModel.Complaint.Status == ComplaintStatus.Open)
+                @if (ViewModel.Complaint.Status == Complaint.ComplaintStatus.Open)
                             {
                     <AuthorizeView Roles="@($"{Roles.Moderator.GetDisplayName()},{Roles.HeadOfModerators.GetDisplayName()}")">
                         <Authorized>
@@ -163,7 +163,7 @@
             {
                 var backgroundColor = i % 2 == 0 ? GetColorResponseEven() : GetColorResponseOdd();
                 <MudPaper Elevation="0" Class="pa-4 mt-2" Style="@($"background-color: {backgroundColor}; position: relative;")">
-                    @if (ViewModel.Complaint.Status == ComplaintStatus.Open)
+                    @if (ViewModel.Complaint.Status == Complaint.ComplaintStatus.Open)
                     {
                         <AuthorizeView Roles="@($"{Roles.Moderator.GetDisplayName()},{Roles.HeadOfModerators.GetDisplayName()}")">
                             <Authorized>
@@ -254,7 +254,37 @@
 
     private async Task ToggleComplaintStatus()
     {
-        await ViewModel.CloseOrOpenComplaint();
+        bool permissionCheck = await ViewModel.CloseOrOpenComplaint();
+        if (permissionCheck)
+        {
+            if (ViewModel.Complaint.Status != Complaint.ComplaintStatus.Open)
+            {
+                await ViewModel.Complaint.ChangeComplaintStatus(Complaint.ComplaintStatus.Open);
+                return;
+            }
+
+            var parameters = new DialogParameters
+            {
+                { "Complaint", ViewModel.Complaint }
+            };
+
+            EditorViewModel.EditorContent = String.Empty;
+            var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
+            var dialogRef = await DialogService.ShowAsync<DialogCloseComplaint>("Resolve complain", parameters, options);
+            var result = await dialogRef.Result;
+
+            if (!(result?.Canceled ?? true))
+            {
+                var _vm = result.Data as DialogCloseComplaintViewModel;
+
+                if(_vm == null)
+                {
+                    return;
+                }
+
+                await ViewModel.MakeDecision(_vm);
+            }
+        }
     }
 
     private async Task AssignModerator()
@@ -269,7 +299,7 @@
         {
             return;
         }
-        @if (ViewModel.Complaint.Status != ComplaintStatus.Open)
+        @if (ViewModel.Complaint.Status != Complaint.ComplaintStatus.Open)
         {
             return;
         }

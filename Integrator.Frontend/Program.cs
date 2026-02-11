@@ -28,6 +28,7 @@ try
     builder.AddIntegratorDatabase();
 
     builder.Services.AddScoped<IComplaintsViewModel, ComplaintsViewModel>();
+    builder.Services.AddScoped<IDialogCloseComplaintViewModel, DialogCloseComplaintViewModel>();
     builder.Services.AddScoped<IRichTextEditorViewModel, RichTextEditorViewModel>();
     builder.Services.AddScoped<IDialogNewComplaintViewModel, DialogNewComplaintViewModel>();
     builder.Services.AddScoped<IComplaintDetailsViewModel, ComplaintDetailsViewModel>();

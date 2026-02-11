@@ -32,9 +32,20 @@ public class Complaint : BaseModel, IComplaint
 {
     public enum ComplaintStatus
     {
+        [Display(Name = "Not Set")]
         NotSet = 0,
+
+        [Display(Name = "Open")]
         Open = 1,
-        Closed = 2
+
+        [Display(Name = "Closed")]
+        Closed = 2,
+
+        [Display(Name = "Expired")]
+        Expired = 3,
+
+        [Display(Name = "Rejected")]
+        Rejected = 4
     }
 
     public enum ComplaintContext
