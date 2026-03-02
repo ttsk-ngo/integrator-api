@@ -1,0 +1,45 @@
+﻿@inherits LayoutComponentBase
+
+@* Required *@
+<MudThemeProvider @bind-IsDarkMode="_isDarkMode" Theme="_theme" />
+<MudPopoverProvider />
+
+@* Needed for dialogs *@
+<MudDialogProvider />
+
+@* Needed for snackbars *@
+<MudSnackbarProvider />
+
+@* Needed to repair placeholder's color in dark mode in RichTextEditorComponent*@
+<style>
+    .ql-editor::before {
+        color: var(--mud-palette-text-primary) !important;
+        opacity: 1 !important;
+    }
+</style>
+
+<CascadingValue Value="@_isDarkMode" Name="IsDarkMode">
+    <MudLayout>
+        <TopBar DrawerToggleClicked="DrawerToggle" ChangeThemeClicked="ChangeTheme" IsDarkMode="_isDarkMode"></TopBar>
+        <SideBar DrawerOpen="_drawerOpen"></SideBar>
+        <MudMainContent>
+            @Body
+        </MudMainContent>
+    </MudLayout>
+</CascadingValue>
+
+@code {
+    private MudTheme _theme = new();
+    bool _drawerOpen = true;
+    bool _isDarkMode; // To be initialized by the user's settings storage
+
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    void ChangeTheme()
+    {
+        _isDarkMode = !_isDarkMode;
+    }
+}

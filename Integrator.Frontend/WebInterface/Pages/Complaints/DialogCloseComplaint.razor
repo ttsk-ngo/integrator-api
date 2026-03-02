@@ -1,0 +1,127 @@
+﻿@using Integrator.DataAccess.Models.Complaints
+@using Integrator.Frontend.WebInterface.ViewModels.Complaints
+@using Integrator.Frontend.WebInterface.ViewModels.Editor
+@using Integrator.Frontend.WebInterface.Components
+@using Integrator.Shared.Helpers.Enums
+@using static Integrator.DataAccess.Models.Complaints.Complaint
+
+@rendermode InteractiveServer
+
+@implements IDisposable
+
+@inject IDialogCloseComplaintViewModel ViewModel
+@inject IRichTextEditorViewModel EditorViewModel
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        Resolve Response
+    </TitleContent>
+    <DialogContent>
+        <MudContainer Style="max-height: 500px; overflow-y: auto">
+
+            <MudText Typo="Typo.subtitle2" Class="mb-2">Decision:</MudText>
+            <MudToggleGroup T="Complaint.ComplaintStatus" @bind-Value="ViewModel.Decision" Color="Color.Primary" Outline="true" Delimiters="true" Dense="true" Class="mb-6">
+                @foreach (var status in Enum.GetValues(typeof(Complaint.ComplaintStatus))
+                                .Cast<Complaint.ComplaintStatus>()
+                                .Where(x => x != ComplaintStatus.NotSet
+                                && x != ComplaintStatus.Open))
+                {
+                    <MudToggleItem Value="@status" Text="@ViewModel.GetActionName(status)" />
+                }
+            </MudToggleGroup>
+
+            @if (ViewModel.Decision == ComplaintStatus.Closed)
+            {
+                <MudGrid>
+                    <MudItem xs="12" sm="8">
+                        <MudStack Spacing="4">
+                            <MudTextField T="string"
+                                          Label="Message for the accused"
+                                          Lines="4"
+                                          Variant="Variant.Outlined"
+                                          @bind-Value="ViewModel.AccusedMessage"
+                                          HelperText="This message will be seen by the user accused" />
+
+                            <MudTextField T="string"
+                                          Label="Moderation notes"
+                                          Lines="4"
+                                          Variant="Variant.Outlined"
+                                          @bind-Value="ViewModel.ModeratorNotes"
+                                          HelperText="Visible only to administration" />
+                        </MudStack>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="4">
+                        <MudPaper Elevation="0" Class="pa-4 mud-background-gray">
+                            <MudText Typo="Typo.subtitle2" Class="mb-2">Put a ban on:</MudText>
+                            @foreach (var context in Enum.GetValues(typeof(Complaint.ComplaintContext))
+                                                    .Cast<Complaint.ComplaintContext>())
+                            {
+                                <MudCheckBox @bind-Value="ViewModel.SubsystemSelections[context]"
+                                             Label="@context.GetDisplayName()"
+                                             Color="Color.Error"
+                                             Dense="true" />
+                            }
+                        </MudPaper>
+                        <MudStack Spacing="2">
+                            <MudSwitch @bind-Value="ViewModel.IsPermanent"
+                                       Label="Perm"
+                                       Color="Color.Error"
+                                       UnCheckedColor="Color.Default" />
+
+                            <MudNumericField @bind-Value="ViewModel.BanDurationDays"
+                                             Label="Ban length (days)"
+                                             Variant="Variant.Outlined"
+                                             Min="1"
+                                             Disabled="@ViewModel.IsPermanent"
+                                             Margin="Margin.Dense"
+                                             Adornment="Adornment.End"
+                                             AdornmentIcon="@(ViewModel.IsPermanent? Icons.Material.Filled.AllInclusive : Icons.Material.Filled.AccessTime)"
+                                             AdornmentColor="@(ViewModel.IsPermanent? Color.Error: Color.Default)" />
+                        </MudStack>
+                    </MudItem>
+                </MudGrid>
+            }
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <div class="mx-4 mb-3 d-flex">
+            <MudButton OnClick="Cancel">Cancel</MudButton>
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit">Confirm</MudButton>
+        </div>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public IComplaint Complaint { get; set; }
+
+
+    public void Dispose()
+    {
+        EditorViewModel.EditorContent = String.Empty;
+    }
+
+    protected override void OnInitialized()
+    {
+        ViewModel.Complaint = Complaint;
+        base.OnInitialized();
+    }
+
+    private void Submit()
+    {
+        if (ViewModel.Decision == ComplaintStatus.Closed && string.IsNullOrWhiteSpace(ViewModel.AccusedMessage))
+        {
+            Snackbar.Add("You must give a reason for the accused!", Severity.Error);
+            return;
+        }
+
+        MudDialog.Close(DialogResult.Ok(ViewModel));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

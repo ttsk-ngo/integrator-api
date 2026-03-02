@@ -1,0 +1,71 @@
+﻿@page "/seed"
+@using Integrator.DataAccess.Models.Users
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using Serilog
+@inject UserManager<IntegratorUser> UserManager
+@inject RoleManager<IdentityRole> RoleManager
+
+<h3>List of seeded users</h3>
+<br/>
+
+<MudDataGrid Items="@_users" Hover="false" Dense="false" Striped="true" Bordered="true">
+    <Columns>
+        <PropertyColumn Property="x => x.UserName" Title="Username" />
+        <PropertyColumn Property="x => x.Email" />
+        <PropertyColumn Property="x => x.Role" />
+        <PropertyColumn Property="x => x.Password" />
+    </Columns>
+</MudDataGrid>
+
+@code {
+    private List<SeedData.SeedUser> _users = new();
+    private ILogger _logger = Log.ForContext<Seed>();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        foreach (var seedUser in SeedData.Users)
+        {
+            if (await UserManager.Users.FirstOrDefaultAsync(x => x.Email == seedUser.Email) != null)
+            {
+                continue; // User already exists
+            }
+
+            var user = new IntegratorUser()
+            {
+                UserName = seedUser.UserName,
+                Email = seedUser.Email
+            };
+            
+            var result = await UserManager.CreateAsync(user, seedUser.Password);
+            
+            if (result.Succeeded)
+            {
+                _logger.Information("Successfully seeded user {Username}", seedUser.UserName);
+                if (await RoleManager.RoleExistsAsync(seedUser.Role) == false)
+                {
+                    await RoleManager.CreateAsync(new IdentityRole(seedUser.Role));
+                }
+
+                var roleResult = await UserManager.AddToRoleAsync(user, seedUser.Role);
+                if (roleResult.Succeeded)
+                {
+                    _logger.Information("Successfully added role {RoleName} for user {Username}", seedUser.Role, seedUser.UserName);
+                }
+                else
+                {
+                    _logger.Warning("Adding role {RoleName} failed for user {Username}", seedUser.Role, seedUser.UserName);
+                }
+            }
+            else
+            {
+                _logger.Warning("Seeding of user {Username} failed", seedUser.UserName);
+            }
+        }
+
+        _users = SeedData.Users;
+
+        await base.OnInitializedAsync();
+    }
+
+}

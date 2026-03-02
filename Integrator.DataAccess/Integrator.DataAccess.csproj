@@ -9,6 +9,11 @@
     <ItemGroup>
       <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.13" />
       <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="9.0.2" />
+      <PackageReference Include="MudExRichTextEditor" Version="8.5.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Integrator.Shared\Integrator.Shared.csproj" />
     </ItemGroup>
 
 </Project>

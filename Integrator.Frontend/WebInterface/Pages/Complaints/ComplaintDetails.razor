@@ -1,0 +1,333 @@
+﻿@page "/complaints/{Number}"
+@attribute [Authorize]
+
+@using Integrator.DataAccess.Models.Complaints
+@using Integrator.DataAccess.Models.Users
+@using Integrator.Frontend.WebInterface.ViewModels.Complaints
+@using Integrator.Frontend.WebInterface.Pages.Complaints
+@using Integrator.Frontend.WebInterface.Components
+@using Integrator.Frontend.WebInterface.ViewModels.Editor
+@using Integrator.Shared.ErrorHandling
+@using Integrator.Shared.Helpers.Enums
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using static Integrator.DataAccess.Models.Complaints.Complaint
+@using Ganss.Xss
+@using System.Security.Claims
+
+@inject IComplaintDetailsViewModel ViewModel
+@inject IRichTextEditorViewModel EditorViewModel
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Complaint</PageTitle>
+
+@* Number *@
+<MudText Typo="Typo.h5" GutterBottom="true" Style="padding: 20px 20px 10px 20px;">
+    Complaint: <span style="font-weight: 500;">@ViewModel.ComplaintNumber</span> | Status: <span style="font-weight: 500;">@ViewModel.Complaint.Status</span>
+</MudText>
+
+<MudGrid Spacing="4" Class="px-4">
+
+    @* LEFT COLUMN *@
+    <MudItem xs="12" md="5">
+        <MudStack Spacing="3" Class="py-2" Style="max-height: calc(100vh - 140px); overflow-y: auto;">
+
+            @* Context *@
+            <MudText Typo="Typo.subtitle1">
+                Context: <span style="font-weight: 500;">@ViewModel.Complaint.ContextToString()</span>
+            </MudText>
+
+            @* Users and rules *@
+            <MudTable Items="@ViewModel.Complaint.InvolvedUsers" Hover="true" Dense="true" Bordered="false" Striped="true">
+                <HeaderContent>
+                    <MudTh Class="text-center">Nickname</MudTh>
+                    <MudTh Class="text-center">Role</MudTh>
+                    <MudTh Class="text-center">Context</MudTh>
+                    <MudTh Class="text-center">Violated Rules</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Nickname" Class="align-middle">@context.Nickname</MudTd>
+                    <MudTd DataLabel="Role" Class="text-center align-middle">
+                        <MudChip T="string"
+                                 Color="@GetChipColor(context.Role)"
+                                 Size="Size.Small"
+                                 Variant="Variant.Filled">
+                            @context.Role.GetDisplayName()
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Context" Class="text-center align-middle">@context.Context</MudTd>
+                    <MudTd DataLabel="Violated Rules" Class="align-middle">@(string.IsNullOrEmpty(context.ViolatedRules) ? "-" : context.ViolatedRules)</MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <MudText>No users added.</MudText>
+                </NoRecordsContent>
+            </MudTable>
+
+            @* Add responce *@
+            @if (ViewModel.Complaint.Status == Complaint.ComplaintStatus.Open)
+            {
+            <MudStack Spacing="1" Class="mt-5">
+                <RichTextEditorComponent ViewModel="EditorViewModel"
+                                         Height="300px"
+                                         Class="mt-2"
+                                         Placeholder="Add a comment..." />
+                <MudButton OnClick="HandleNewResponse" Variant="Variant.Filled" Color="Color.Warning" FullWidth="true" Style="font-weight: 600; text-transform: none;">
+                    Add New Response
+                </MudButton>
+            </MudStack>
+            }
+
+            <AuthorizeView Roles="@($"{Roles.Moderator.GetDisplayName()},{Roles.HeadOfModerators.GetDisplayName()}")">
+                <Authorized>
+                    <MudItem xs="12">
+                        <MudDivider Class="mb-3 mt-3" Style="border-width: 5px !important; border-color: black !important;" />
+                    </MudItem>
+
+                    <MudStack Spacing="1" Class="mt-3">
+                        <MudButton Icon="@(ViewModel.Complaint.Status == Complaint.ComplaintStatus.Open ? Icons.Material.Filled.Lock : Icons.Material.Filled.LockOpen)"
+                                   Color="Color.Warning"
+                                   Variant="Variant.Filled"
+                                   OnClick="ToggleComplaintStatus"
+                                   FullWidth="true" 
+                                   Style="font-weight: 600; text-transform: none;">
+                            @(ViewModel.Complaint.Status == Complaint.ComplaintStatus.Open ? "Resolve this complaint" : "Open this complaint")
+                        </MudButton>
+                    </MudStack>
+                </Authorized>
+            </AuthorizeView>
+            @if (ViewModel.Complaint.Status == Complaint.ComplaintStatus.Open)
+            {
+                <AuthorizeView Roles="@($"{Roles.HeadOfModerators.GetDisplayName()}")">
+                    <Authorized>
+                        <MudGrid Spacing="1" Class="mt-3 align-items-center">
+                            <MudItem xs="12" md="9">
+                                <MudAutocomplete T="string"
+                                                 Label="Select nickname"
+                                                 Margin="Margin.Dense"
+                                                 @bind-Value="ViewModel.SelectedNickname"
+                                                 SearchFunc="@ViewModel.SearchNicknames"
+                                                 AdornmentIcon="@Icons.Material.Filled.Search"
+                                                 AdornmentColor="Color.Primary"
+                                                 Variant="Variant.Outlined" />
+                            </MudItem>
+                            <MudItem xs="12" md="3">
+                                <MudButton Color="Color.Warning"
+                                           Variant="Variant.Filled"
+                                           OnClick="AssignModerator"
+                                           FullWidth="true"
+                                           Style="font-weight: 600; text-transform: none; margin-top: 8px !important;">
+                                    Assign
+                                </MudButton>
+                            </MudItem>
+                        </MudGrid>
+                    </Authorized>
+                </AuthorizeView>
+            }
+        </MudStack>
+    </MudItem>
+
+    @* RIGHT COLUMN *@
+    <MudItem xs="12" md="7">
+        <MudStack Spacing="3" Class="py-2" Style="max-height: calc(100vh - 140px); overflow-y: auto;">
+
+            @* Description *@
+            <MudPaper Elevation="0" Class="pa-4 mt-2" Style="@($"background-color:{GetColorResponseOdd()}; position: relative;")">
+                @if (ViewModel.Complaint.Status == Complaint.ComplaintStatus.Open && CanEditResponse(ViewModel.Complaint.Description))
+                {
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                   Size="Size.Small"
+                                   Color="Color.Info"
+                                   Class="float-right"
+                                   Style="position: absolute; top: 10px; right: 10px;"
+                                   OnClick="@(() => OpenEditDialog(ViewModel.Complaint.Description))" />
+                }
+                <MudText Typo="Typo.subtitle1" Style="font-weight: 600; margin-bottom: 5px;">
+                    @ViewModel.Complaint.Accuser()
+                </MudText>
+                <MudText Typo="Typo.body2" Class="mb-1">
+                    @((MarkupString)ViewModel.Complaint.Description.ContentUpdated)
+                </MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    @ViewModel.Complaint.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                    @($"Created: {ViewModel.Complaint.Description.ResponseDate.ToString("yyyy-MM-dd HH:mm")} | Last update: {ViewModel.Complaint.Description.ResponseDateUpdated.ToString("yyyy-MM-dd HH:mm")}")
+                </MudText>
+            </MudPaper>
+
+            @* Responces *@
+            @{
+                int i = 0;
+            }
+            @foreach (var response in ViewModel.Complaint.Responses.ToList())
+            {
+                var backgroundColor = i % 2 == 0 ? GetColorResponseEven() : GetColorResponseOdd();
+                <MudPaper Elevation="0" Class="pa-4 mt-2" Style="@($"background-color: {backgroundColor}; position: relative;")">
+                    @if (ViewModel.Complaint.Status == Complaint.ComplaintStatus.Open && CanEditResponse(response))
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                       Size="Size.Small"
+                                       Color="Color.Info"
+                                       Class="float-right"
+                                       Style="position: absolute; top: 10px; right: 10px;"
+                                       OnClick="@(() => OpenEditDialog(response))" />
+                    }
+                    <MudText Typo="Typo.subtitle1" Style="font-weight: 600; margin-bottom: 5px;">
+                        @response.ResponderName
+                    </MudText>
+                    <MudText Typo="Typo.body2" Class="mb-1">
+                        @((MarkupString)response.ContentUpdated)
+                    </MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        @($"Created: {response.ResponseDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm")} | Last update: {response.ResponseDateUpdated.ToLocalTime().ToString("yyyy-MM-dd HH:mm")}")
+                    </MudText>
+                </MudPaper>
+                i++;
+            }
+        </MudStack>
+    </MudItem>
+</MudGrid>
+
+
+@code {
+    [CascadingParameter(Name = "IsDarkMode")]
+    public bool IsDarkMode { get; set; }
+    private ClaimsPrincipal? _user;
+    private string _currentUserId = string.Empty;
+
+    [Parameter] public string Number { get; set; }
+
+    [Inject] IDialogService DialogService { get; set; }
+    [Inject] NavigationManager NavigationManager { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        ViewModel.SetFields(Number);
+
+        if (ViewModel.Complaint == null)
+        {
+            NavigationManager.NavigateTo($"/errors/404");
+        }
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        _user = authState?.User;
+        _currentUserId = _user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+
+        await base.OnInitializedAsync();
+    }
+
+    private Color GetChipColor(InvolvedUser.InvolvedUserRole role)
+    {
+        return role switch
+        {
+            InvolvedUser.InvolvedUserRole.Accused => Color.Warning,
+            InvolvedUser.InvolvedUserRole.Witness => Color.Info,
+            InvolvedUser.InvolvedUserRole.AssignedModerator => Color.Error,
+            _ => Color.Default
+        };
+    }
+
+    private string GetColorResponseEven()
+    {
+        return IsDarkMode switch
+        {
+            false => Colors.Gray.Lighten4,
+            true => Colors.Gray.Darken2
+        };
+    }
+
+    private string GetColorResponseOdd()
+    {
+        return IsDarkMode switch
+        {
+            false => Colors.Gray.Lighten2,
+            true => Colors.Gray.Darken3
+        };
+    }
+
+    private async Task HandleNewResponse()
+    {
+        var sanitizer = new HtmlSanitizer();
+        var cleanHtml = sanitizer.Sanitize(EditorViewModel.EditorContent);
+
+        await ViewModel.AddNewResponse(cleanHtml);
+        EditorViewModel.EditorContent = String.Empty;
+    }
+
+    private async Task ToggleComplaintStatus()
+    {
+        bool permissionCheck = await ViewModel.CloseOrOpenComplaint();
+        if (permissionCheck)
+        {
+            if (ViewModel.Complaint.Status != Complaint.ComplaintStatus.Open)
+            {
+                await ViewModel.Complaint.ChangeComplaintStatus(Complaint.ComplaintStatus.Open);
+                return;
+            }
+
+            var parameters = new DialogParameters
+            {
+                { "Complaint", ViewModel.Complaint }
+            };
+
+            EditorViewModel.EditorContent = String.Empty;
+            var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
+            var dialogRef = await DialogService.ShowAsync<DialogCloseComplaint>("Resolve complain", parameters, options);
+            var result = await dialogRef.Result;
+
+            if (!(result?.Canceled ?? true))
+            {
+                var _vm = result.Data as DialogCloseComplaintViewModel;
+
+                if(_vm == null)
+                {
+                    return;
+                }
+
+                await ViewModel.MakeDecision(_vm);
+            }
+        }
+    }
+
+    private async Task AssignModerator()
+    {
+        await ViewModel.AssignModerator();
+    }
+
+    private async Task OpenEditDialog(IComplaintResponse response)
+    {
+        bool checkResult = CanEditResponse(response);
+        if (!checkResult)
+        {
+            return;
+        }
+        @if (ViewModel.Complaint.Status != Complaint.ComplaintStatus.Open)
+        {
+            return;
+        }
+
+        var parameters = new DialogParameters
+        {
+            { "Response", response },
+            { "Complaint", ViewModel.Complaint }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
+        var dialogRef = await DialogService.ShowAsync<DialogEditResponse>("Edit response", parameters, options);
+        var result = await dialogRef.Result;
+    }
+
+    private bool CanEditResponse(IComplaintResponse response)
+    {
+        if (_user == null) return false;
+
+        bool isModerator = _user.IsInRole(Roles.Moderator.GetDisplayName()) ||
+                           _user.IsInRole(Roles.HeadOfModerators.GetDisplayName());
+
+        if (isModerator) return true;
+
+        bool isAuthor = response.UserId == _currentUserId;
+        bool isRecent = (DateTime.UtcNow - response.ResponseDate).TotalMinutes <= 15;
+        bool isLastMessage = response.Equals(ViewModel.Complaint.Responses.LastOrDefault());
+
+        return isAuthor && isRecent && isLastMessage;
+    }
+}

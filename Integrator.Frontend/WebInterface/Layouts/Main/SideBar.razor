@@ -1,0 +1,55 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+<MudDrawer Elevation="1" @bind-Open="@DrawerOpen">
+    <MudContainer Class="pa-2 my-2 d-flex justify-center align-center">
+        <MudIcon Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit"></MudIcon>
+        <MudText Typo="Typo.h5" Class="ml-3">Integrator 2.0</MudText>
+    </MudContainer>
+    
+    <MudContainer Class="d-flex justify-center align-center px-4 my-2">
+        <MudAvatar Color="Color.Primary">@_username.ToUpper().ToCharArray()[0]</MudAvatar>
+        <MudContainer Class="d-flex justify-start flex-column pl-4">
+            <MudText Typo="Typo.body1">@_username</MudText>
+            <MudText Typo="Typo.body2">Developer</MudText>
+        </MudContainer>
+    </MudContainer>
+    
+    <MudNavMenu Bordered="true">
+        <MudDivider Class="my-2"/>
+        <MudNavLink Icon="@Icons.Material.Outlined.Dashboard" Href="/" Match="NavLinkMatch.All">Dashboard</MudNavLink>
+        <MudNavLink Icon="@Icons.Material.Outlined.Announcement" Href="/complaints" Match="NavLinkMatch.Prefix">Complaints</MudNavLink>
+        <MudNavLink Icon="@Icons.Material.Outlined.CreditCard" Href="/billing" Disabled="true">Donations</MudNavLink>
+        <MudNavGroup Title="Settings" Expanded="true" Disabled="true">
+            <MudNavLink Href="/users">Users</MudNavLink>
+            <MudNavLink Href="/security">Security</MudNavLink>
+        </MudNavGroup>
+        <MudNavLink Href="/about" Disabled="true">About</MudNavLink>
+        <MudNavLink Icon="@Icons.Material.Filled.SportsKabaddi" Href="/seed" Match="NavLinkMatch.Prefix">Seeding</MudNavLink>
+    </MudNavMenu>
+</MudDrawer>
+
+@code {
+    [Parameter]
+    public bool DrawerOpen { get; set; }
+    
+    [CascadingParameter] 
+    private Task<AuthenticationState>? AuthenticationState { get; set; }
+    
+    private string _username = "Guest";
+    private string _userRole = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthenticationState != null)
+        {
+            var authState = await AuthenticationState;
+            var user = authState.User;
+
+            if (user.Identity != null && user.Identity.Name != null)
+            {
+                _username = user.Identity.Name;
+            }
+        }
+
+        await base.OnInitializedAsync();
+    }
+}

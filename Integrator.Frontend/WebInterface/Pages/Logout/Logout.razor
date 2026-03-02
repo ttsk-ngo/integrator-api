@@ -1,0 +1,17 @@
+﻿@page "/auth/logout"
+@using Integrator.DataAccess.Models.Users
+@using Integrator.Frontend.WebInterface.Layouts.Simple
+@using Microsoft.AspNetCore.Identity
+@layout SimpleLayout
+@inject SignInManager<IntegratorUser> SignInManager
+@inject NavigationManager NavigationManager
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await SignInManager.SignOutAsync();
+        await base.OnInitializedAsync();
+        NavigationManager.NavigateTo("/auth/login");
+    }
+
+}

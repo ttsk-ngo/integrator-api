@@ -1,0 +1,20 @@
+﻿@using Integrator.Frontend.WebInterface.Layouts.Main
+@using Integrator.Frontend.WebInterface.Layouts.Simple
+@using Microsoft.AspNetCore.Components.Authorization
+@using Integrator.Frontend.WebInterface.Pages.Errors
+@inject NavigationManager NavigationManager
+<Router AppAssembly="typeof(Program).Assembly">
+    <Found Context="routeData">
+        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)">
+            <NotAuthorized>
+                @{ NavigationManager.NavigateTo("/auth/login", true);}
+            </NotAuthorized>
+        </AuthorizeRouteView>
+        <FocusOnNavigate RouteData="routeData" Selector="h1"/>
+    </Found>
+    <NotFound>
+        <LayoutView Layout="typeof(SimpleLayout)">
+            <NotFound></NotFound>
+        </LayoutView>
+    </NotFound>
+</Router>

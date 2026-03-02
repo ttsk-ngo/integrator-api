@@ -1,0 +1,206 @@
+﻿@using Integrator.DataAccess.Models.Complaints
+@using Integrator.Frontend.WebInterface.ViewModels.Complaints
+@using Integrator.Frontend.WebInterface.ViewModels.Editor
+@using Integrator.Frontend.WebInterface.Components
+@using Integrator.Shared.Helpers.Enums
+@using Ganss.Xss
+
+@rendermode InteractiveServer
+
+@implements IDisposable
+
+@inject IDialogNewComplaintViewModel ViewModel
+@inject IRichTextEditorViewModel EditorViewModel
+
+<MudDialog>
+    <TitleContent>
+        Create a new complain
+    </TitleContent>
+    <DialogContent>
+        <MudGrid Spacing="2">
+            <MudItem xs="12" md="6">
+                <MudAutocomplete T="string"
+                                 Label="Select nickname"
+                                 Margin="Margin.Dense"
+                                 @bind-Value="ViewModel.SelectedNickname"
+                                 SearchFunc="@ViewModel.SearchNicknames"
+                                 AdornmentIcon="@Icons.Material.Filled.Search"
+                                 AdornmentColor="Color.Primary"
+                                 Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudSelect @bind-Value="ViewModel.SelectedContext"
+                           Label="Context"
+                           Margin="Margin.Dense"
+                           Variant="Variant.Outlined">
+                            @foreach (var context in Enum.GetValues(typeof(Complaint.ComplaintContext))
+                                        .Cast<Complaint.ComplaintContext?>())
+                            {
+                                <MudSelectItem Value="@context">@context?.GetDisplayName()</MudSelectItem>
+                            }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12">
+                <MudPaper Class="d-flex gap-1 py-1" Elevation="0">
+                    @foreach (var context in Enum.GetValues(typeof(InvolvedUser.InvolvedUserRole))
+                                        .Cast<InvolvedUser.InvolvedUserRole>()
+                                        .Where(x => x != InvolvedUser.InvolvedUserRole.NotSet 
+                                        && x != InvolvedUser.InvolvedUserRole.AssignedModerator
+                                        && x != InvolvedUser.InvolvedUserRole.Accuser))
+                    {
+                        <MudButton Variant="@ViewModel.GetButtonVariant(context)"
+                                   Color="@ViewModel.GetButtonColor(context)"
+                                   Size="Size.Small"
+                                   Class="px-4 flex-grow-1"
+                                   OnClick="@(() => HandleRoleSelection(context))">
+                            @context.GetDisplayName()
+                        </MudButton>
+                    }
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudSelect T="string"
+                           @bind-Value="ViewModel.SelectedRule"
+                           Label="Violated Rule"
+                           Margin="Margin.Dense"
+                           Variant="Variant.Outlined"
+                           Disabled="@(ViewModel.SelectedUserRole != InvolvedUser.InvolvedUserRole.Accused || ViewModel.SelectedContext == null)">
+                    @if (ViewModel.SelectedContext != null)
+                    {
+                        @foreach (var rule in ViewModel.GetRulesForContext(ViewModel.SelectedContext))
+                        {
+                            <MudSelectItem Value="@rule" Disabled="@IsRuleAlreadySelected(rule)">@rule</MudSelectItem>
+                        }
+                    }
+                </MudSelect>
+            </MudItem>
+
+            <MudItem xs="12" Class="d-flex flex-column flex-md-row justify-start justify-md-end mb-2">
+                <MudButton Variant="Variant.Filled"
+                           StartIcon="@Icons.Material.Filled.PersonAdd"
+                           Size="Size.Small"
+                           OnClick="AddUser">
+                    Add user
+                </MudButton>
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudDivider />
+            </MudItem>
+
+            <MudItem xs="12" Class="mt-2 mb-2">
+                <MudTable Items="@ViewModel.ComplainData.InvolvedUsers" Hover="true" Dense="true" Bordered="false" Striped="true">
+                    <HeaderContent>
+                        <MudTh Class="text-center">Nickname</MudTh>
+                        <MudTh Class="text-center">Role</MudTh>
+                        <MudTh Class="text-center">Context</MudTh>
+                        <MudTh Class="text-center">Violated Rules</MudTh>
+                        <MudTh Class="text-center">Actions</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Nickname" Class="align-middle">@context.Nickname</MudTd>
+                        <MudTd DataLabel="Role" Class="text-center align-middle">
+                            <MudChip T="string"
+                                     Color="@GetChipColor(context.Role)"
+                                     Size="Size.Small"
+                                     Variant="Variant.Filled">
+                                @context.Role
+                            </MudChip>
+                        </MudTd>
+                        <MudTd DataLabel="Context" Class="text-center align-middle">@context.Context</MudTd>
+                        <MudTd DataLabel="Violated Rules" Class="align-middle">@(string.IsNullOrEmpty(context.ViolatedRules) ? "-" : context.ViolatedRules)</MudTd>
+                        <MudTd DataLabel="Actions" Class="text-center align-middle">
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                           Color="Color.Error"
+                                           Size="Size.Small"
+                                           OnClick="@(() => RemoveUser(context))" />
+                        </MudTd>
+
+                    </RowTemplate>
+                    <NoRecordsContent>
+                        <MudText>No users added yet.</MudText>
+                    </NoRecordsContent>
+                </MudTable>
+            </MudItem>
+            <MudItem xs="12">
+                <RichTextEditorComponent ViewModel="EditorViewModel"
+                                         Height="400px"
+                                         Class="m-2"
+                                         Placeholder="Describe the situation..." />
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <div class="mx-4 mb-3 d-flex">
+            <MudButton OnClick="Cancel" Variant="Variant.Filled" Class="mr-2">Cancel</MudButton>
+            <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Create complain</MudButton>
+        </div>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public string AccuserNickname { get; set; }
+
+    public void Dispose()
+    {
+        EditorViewModel.EditorContent = String.Empty;
+    }
+
+    protected override void OnInitialized()
+    {
+        ViewModel.AccuserNickname = AccuserNickname;
+        base.OnInitialized();
+    }
+
+    private void Submit() 
+    {
+        if (!ViewModel.Submit(EditorViewModel))
+        {
+            return;
+        }
+
+        MudDialog.Close(DialogResult.Ok(ViewModel.GetComplainData()));
+        ViewModel.Reset();
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void AddUser()
+    {
+        ViewModel.AddUserToComplain();
+    }
+
+    private void RemoveUser(InvolvedUser user)
+    {
+        ViewModel.RemoveUserFromComplain(user);
+    }
+
+    private Color GetChipColor(InvolvedUser.InvolvedUserRole role)
+    {
+        return role switch
+        {
+            InvolvedUser.InvolvedUserRole.Accused => Color.Warning,
+            InvolvedUser.InvolvedUserRole.Witness => Color.Info,
+            _ => Color.Default
+        };
+    }
+
+    private bool IsRuleAlreadySelected(string rule)
+    {
+        // Checks if the rule has already been selected for this user and context
+        return ViewModel.ComplainData.InvolvedUsers.Any(u =>
+            u.Nickname == ViewModel.SelectedNickname &&
+            u.Context == ViewModel.SelectedContext &&
+            u.ViolatedRules.Contains(rule));
+    }
+
+    private void HandleRoleSelection(InvolvedUser.InvolvedUserRole context)
+    {
+        ViewModel.SelectedUserRole = context;
+    }
+}

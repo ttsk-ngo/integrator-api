@@ -1,0 +1,152 @@
+﻿@page "/complaints"
+@attribute [Authorize]
+
+@using System.ComponentModel
+@using Integrator.DataAccess.Models.Complaints
+@using Integrator.Frontend.WebInterface.ViewModels.Complaints
+@using Integrator.Frontend.WebInterface.Pages.Complaints
+@using Integrator.Frontend.WebInterface.ViewModels.Editor
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@implements IDisposable
+
+@inject IComplaintsViewModel ViewModel
+@inject IRichTextEditorViewModel EditorViewModel
+@inject AuthenticationStateProvider AuthProvider
+
+<PageTitle>Complaints</PageTitle>
+
+<MudDataGrid T="IComplaint" 
+             @ref="grid" 
+             Items="ViewModel.Complaints.AllComplaintsList"     
+             RowClick="OnRowClicked"
+             DragDropColumnReordering="true"
+             ColumnsPanelReordering="true"
+             ColumnResizeMode="ResizeMode.Column"
+             Hideable="true"
+             Filterable="true"
+             Groupable="false"
+             FilterMode="DataGridFilterMode.Simple"
+             ShowMenuIcon="true">
+    <ToolBarContent>
+        <MudSpacer />
+        <MudIconButton Icon="@Icons.Material.Filled.Add"
+                       Color="Color.Primary"
+                       OnClick="OpenDialogAsync"
+                       Size="Size.Medium"
+                       Style="font-size: 28px;"
+                       Class="mr-2" />
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.Number" Title="#" Hidden="false" Grouping="false"
+                        Hideable="false" Filterable="true" Groupable="false" Sortable="true" DragAndDropEnabled="false" />
+
+        @* <PropertyColumn Property="x => x.Sign" Hidden="true" DragAndDropEnabled="false" Groupable="false" Filterable="false" Sortable="false" /> *@
+
+        @* <PropertyColumn Property="x => x.Nickname" Title="Nickname" Hidden="false" DragAndDropEnabled="true" Groupable="true"  Filterable="true" Grouping="false" /> *@
+
+        <PropertyColumn Property="x => x.ContextToString()" Title="Context" Hidden="false" Grouping="false"
+                        Hideable="false" Filterable="true" Groupable="true" Sortable="true" style="white-space: pre-line;" />
+
+        <PropertyColumn Property="x => x.Accuser()" Title="Accuser" Hidden="false" Grouping="false"
+                        Hideable="false" Filterable="true" Groupable="true" Sortable="true" />
+
+        <PropertyColumn Property="x => x.Accused()" Title="Accused" Hidden="false" Grouping="false"
+                        Hideable="false" Filterable="true" Groupable="true" Sortable="true" />
+
+        <PropertyColumn Property="x => x.Witnesses()" Title="Witnesses" Hidden="false" Grouping="false"
+                        Hideable="true" Filterable="true" Groupable="false" Sortable="true" />
+
+        <PropertyColumn Property="x => x.CreatedAt" Title="Created" Format="dd/MM/yyyy" Hidden="false" Grouping="false"
+                        Hideable="true" Filterable="true" Groupable="true" Sortable="true" />
+
+        <PropertyColumn Property="x => x.UpdatedAt" Title="Updated" Format="dd/MM/yyyy HH:mm" Hidden="false" Grouping="false"
+                        Hideable="true" Filterable="true" Groupable="false" Sortable="true" />
+
+        <PropertyColumn Property="x => x.Status" Title="Status" Hidden="false" Grouping="false"
+                        Hideable="false" Filterable="true" Groupable="true" Sortable="true" />
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="IComplaint" />
+    </PagerContent>
+</MudDataGrid>
+
+@code {
+    [Inject] IDialogService DialogService { get; set; }
+    [Inject] NavigationManager NavigationManager { get; set; }
+
+    public MudDataGrid<IComplaint> grid = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ViewModel.Complaints.ComplaintAdded += OnPropertyChangedHandler;
+        await base.OnInitializedAsync();
+    }
+
+    private async void OnPropertyChangedHandler(IComplaint complaint)
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        ViewModel.Complaints.ComplaintAdded -= OnPropertyChangedHandler;
+    }
+
+    private async Task OpenDialogAsync()
+    {
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var user = authState?.User;
+
+        if (user == null || user.Identity?.IsAuthenticated != true)
+        {
+            return;
+        }
+        var username = user.Identity.Name;
+        var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0";
+
+        var parameters = new DialogParameters
+        {
+            { "AccuserNickname", username }
+        };
+
+        EditorViewModel.EditorContent = String.Empty;
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
+        var dialogRef = await DialogService.ShowAsync<DialogNewComplain>("Create a new complain", parameters, options);
+        var result = await dialogRef.Result;
+
+        if (!(result?.Canceled ?? true))
+        {
+            var complainData = result.Data;
+            if (complainData is IComplaint)
+            {
+                ViewModel.Complaints.AddNewComplaint((IComplaint)complainData, username, userId);
+            }
+        }
+    }
+
+    private void OnRowClicked(DataGridRowClickEventArgs<IComplaint> args)
+    {
+        EditorViewModel.EditorContent = String.Empty;
+        var complaint = args.Item;
+        var safeNumber = complaint.Number.Replace("/", "-");
+        NavigationManager.NavigateTo($"/complaints/{safeNumber}");
+    }
+
+    /*private async Task HideColumnsAsync(bool hide)
+    {
+        foreach (var column in grid.RenderedColumns)
+        {
+            System.Console.WriteLine("TEST");
+            if (hide)
+            {
+                await column.HideAsync();
+            }
+            else
+            {
+                await column.ShowAsync();
+            }
+        }
+    }*/
+}
